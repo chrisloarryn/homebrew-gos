@@ -41,18 +41,7 @@ jobs:
     - name: Run go vet
       run: go vet ./...
 
-    - name: Run tests (Unix)
-			if: runner.os != 'Windows'
-			run: |
-				if find . -name "*_test.go" | grep -q .; then
-					go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
-				else
-					echo "No test files found, skipping tests"
-					touch coverage.out
-				fi
-
-		- name: Run tests (Windows)
-			if: runner.os == 'Windows'
+    - name: Run tests
 			shell: bash
 			run: |
 				if find . -name "*_test.go" | grep -q .; then

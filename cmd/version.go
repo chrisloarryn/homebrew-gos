@@ -67,11 +67,11 @@ var listCmd = &cobra.Command{
 }
 
 var removeCmd = &cobra.Command{
-	Use:   "remove [version]",
-	Short: "Remove a specific Go version",
-	Long:  `Remove a specific Go version that has been installed via the 'g' version manager.`,
+	Use:     "remove [version]",
+	Short:   "Remove a specific Go version",
+	Long:    `Remove a specific Go version that has been installed via the 'g' version manager.`,
 	Example: `  gos remove 1.20.10    # Remove Go 1.20.10`,
-	Args: cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if !checkGInstalled() {
 			return
@@ -98,7 +98,7 @@ var projectCmd = &cobra.Command{
 	Long: `Configure a specific Go version for the current project by creating a .go-version file
 and switching to that version.`,
 	Example: `  gos project 1.21.5    # Configure project to use Go 1.21.5`,
-	Args: cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if !checkGInstalled() {
 			return
@@ -274,33 +274,4 @@ func setupProjectVersion(version string) {
 
 	green.Printf("✅ Project configured to use Go %s\n", version)
 	blue.Printf("📄 File created: %s\n", goVersionFile)
-}
-
-func getCurrentVersion() {
-	blue := color.New(color.FgBlue)
-	yellow := color.New(color.FgYellow)
-
-	blue.Println("📍 Current Go version:")
-
-	goCmd := exec.Command("go", "version")
-	if err := goCmd.Run(); err != nil {
-		yellow.Println("⚠️  Go is not available in PATH")
-		return
-	}
-
-	goCmd.Stdout = os.Stdout
-	goCmd.Run()
-
-	// Show GOROOT and GOPATH
-	if gorootCmd := exec.Command("go", "env", "GOROOT"); gorootCmd.Run() == nil {
-		blue.Print("📂 GOROOT: ")
-		gorootCmd.Stdout = os.Stdout
-		gorootCmd.Run()
-	}
-
-	if gopathCmd := exec.Command("go", "env", "GOPATH"); gopathCmd.Run() == nil {
-		blue.Print("📂 GOPATH: ")
-		gopathCmd.Stdout = os.Stdout
-		gopathCmd.Run()
-	}
 }

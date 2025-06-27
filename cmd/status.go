@@ -130,7 +130,7 @@ func showDiskUsage() {
 
 func showEnvironment() {
 	envVars := []string{"GOROOT", "GOPATH", "GOPROXY", "GOSUMDB", "GOMODCACHE"}
-	
+
 	for _, envVar := range envVars {
 		if value := os.Getenv(envVar); value != "" {
 			fmt.Printf("  %s: %s\n", envVar, value)
@@ -143,7 +143,7 @@ func showEnvironment() {
 	fmt.Println("  PATH (Go-related entries):")
 	path := os.Getenv("PATH")
 	pathEntries := strings.Split(path, ":")
-	
+
 	for _, entry := range pathEntries {
 		if strings.Contains(entry, "go") || strings.Contains(entry, ".g") {
 			fmt.Printf("    %s\n", entry)

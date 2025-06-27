@@ -43,11 +43,11 @@ func deepCleanGo(force bool) {
 	if !force {
 		yellow.Println("\n⚠️  WARNING: This will remove ALL Go installations and configurations!")
 		fmt.Print("Are you sure you want to continue? (y/N): ")
-		
+
 		reader := bufio.NewReader(os.Stdin)
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(strings.ToLower(input))
-		
+
 		if input != "y" && input != "yes" {
 			yellow.Println("Cleanup cancelled.")
 			return
@@ -85,7 +85,7 @@ func cleanGoCache() {
 	if _, err := exec.LookPath("go"); err == nil {
 		fmt.Println("  Running go clean -modcache...")
 		exec.Command("go", "clean", "-modcache").Run()
-		
+
 		fmt.Println("  Running go clean -cache...")
 		exec.Command("go", "clean", "-cache").Run()
 	}
@@ -121,7 +121,7 @@ func cleanSystemGo() {
 
 func cleanUserDirectories() {
 	homeDir := os.Getenv("HOME")
-	
+
 	// Clean ~/go directory
 	goDir := filepath.Join(homeDir, "go")
 	if _, err := os.Stat(goDir); err == nil {
@@ -150,7 +150,7 @@ func cleanUserDirectories() {
 
 func cleanOtherManagers() {
 	homeDir := os.Getenv("HOME")
-	
+
 	managerDirs := []string{
 		filepath.Join(homeDir, "sdk"),
 		filepath.Join(homeDir, ".gvm"),
@@ -196,12 +196,12 @@ func cleanShellFile(filename string) {
 	// Create backup
 	timestamp := time.Now().Format("20060102_150405")
 	backupFile := fmt.Sprintf("%s.backup.%s", filename, timestamp)
-	
+
 	input, err := os.ReadFile(filename)
 	if err != nil {
 		return
 	}
-	
+
 	os.WriteFile(backupFile, input, 0644)
 
 	// Filter out Go-related lines
@@ -243,7 +243,7 @@ func fixPermissions(dir string) {
 		if err != nil {
 			return nil
 		}
-		
+
 		if info.IsDir() {
 			os.Chmod(path, 0755)
 		} else {

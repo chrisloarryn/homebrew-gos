@@ -1,0 +1,238 @@
+# GoReleaser configuration for GOS CLI
+# See: https://goreleaser.com
+
+version: 2
+
+project_name: gos
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - id: gos
+    main: ./main.go
+    binary: gos
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w 
+      - -X main.version={{.Version}} 
+      - -X main.commit={{.Commit}} 
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: gos
+    format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+      - RESUMEN.md
+      - example-usage.sh
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Performance improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: 'Refactors'
+      regexp: '^.*?refactor(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: 'Documentation updates'
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 4
+    - title: Others
+      order: 999
+
+release:
+  # If you want to manually examine the release before its live, uncomment this line:
+  # draft: true
+  # Whether to remove existing draft releases with the same name before creating
+  # a new one. Only effective if `draft` is set to true.
+  replace_existing_draft: true
+  # Useful if you want to delay the creation of the tag in the remote.
+  # You can create the tag locally, but not push it, and run GoReleaser.
+  # It'll then set the `target_commitish` portion of the GitHub release to the
+  # value of this field.
+  # Only works on GitHub.
+  target_commitish: '{{ .Commit }}'
+  # Template for the release name.
+  name_template: "{{.ProjectName}} v{{.Version}}"
+  # You can change the name of the release.
+  header: |
+    ## 🚀 GOS CLI v{{.Version}}
+    
+    A comprehensive Go version manager CLI built with Cobra.
+    
+    ### 📦 What's New in This Release
+    
+  footer: |
+    
+    ### 📥 Installation
+    
+    #### Using curl (recommended):
+    ```bash
+    # macOS (Intel)
+    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    
+    # macOS (Apple Silicon)
+    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    
+    # Linux (x86_64)
+    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    
+    # Linux (ARM64)
+    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    ```
+    
+    #### Manual download:
+    Download the appropriate binary for your platform from the assets below.
+    
+    ### 🚀 Quick Start
+    ```bash
+    # Setup the Go version manager
+    gos setup
+    
+    # Reload your shell
+    source ~/.zshrc
+    
+    # Install and use Go 1.21.5
+    gos install 1.21.5
+    gos use 1.21.5
+    
+    # Check status
+    gos status
+    ```
+    
+    ### 📋 Full Documentation
+    See the [README.md](https://github.com/cristobalcontreras/homebrew-gos/blob/main/README.md) for complete documentation.
+
+# Homebrew tap
+brews:
+  - repository:
+      owner: cristobalcontreras
+      name: homebrew-gos
+      branch: main
+    folder: Formula
+    homepage: https://github.com/cristobalcontreras/homebrew-gos
+    description: A comprehensive Go version manager CLI
+    license: MIT
+    test: |
+      system "#{bin}/gos --help"
+    dependencies:
+      - name: curl
+      - name: git
+        type: optional
+    install: |-
+      bin.install "gos"
+      
+      # Install completion scripts
+      generate_completions_from_executable(bin/"gos", "completion")
+
+# Universal macOS binaries
+universal_binaries:
+  - replace: true
+
+# Windows MSI installer (optional)
+nfpms:
+  - id: gos
+    package_name: gos
+    file_name_template: '{{ .ConventionalFileName }}'
+    vendor: Cristobal Contreras
+    homepage: https://github.com/cristobalcontreras/homebrew-gos
+    maintainer: Cristobal Contreras <email@example.com>
+    description: A comprehensive Go version manager CLI
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - curl
+    recommends:
+      - git
+
+# Docker images (optional)
+dockers:
+  - image_templates:
+      - "cristobalcontreras/gos:latest"
+      - "cristobalcontreras/gos:v{{ .Version }}"
+      - "cristobalcontreras/gos:v{{ .Major }}"
+      - "cristobalcontreras/gos:v{{ .Major }}.{{ .Minor }}"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--platform=linux/amd64"
+
+# Announce to various platforms
+announce:
+  # Uncomment and configure if you want to announce releases
+  # discord:
+  #   enabled: true
+  #   message_template: 'New release of GOS CLI: {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+  
+  # slack:
+  #   enabled: true
+  #   message_template: 'New release of GOS CLI: {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'

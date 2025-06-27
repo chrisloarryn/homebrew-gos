@@ -1,5 +1,3 @@
-// Package cmd provides the command-line interface for the gos tool,
-// a Go version manager that integrates with the 'g' version manager.
 package cmd
 
 import (

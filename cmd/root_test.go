@@ -15,11 +15,11 @@ func TestRootCmd(t *testing.T) {
 		if rootCmd == nil {
 			t.Fatal("rootCmd should not be nil")
 		}
-
+		
 		if rootCmd.Use != "gos" {
 			t.Errorf("expected Use to be 'gos', got %q", rootCmd.Use)
 		}
-
+		
 		if rootCmd.Short == "" {
 			t.Error("Short description should not be empty")
 		}
@@ -29,15 +29,15 @@ func TestRootCmd(t *testing.T) {
 func TestSetVersionInfo(t *testing.T) {
 	t.Run("version info can be set", func(t *testing.T) {
 		SetVersionInfo(testVersion, testCommit, testDate)
-
+		
 		if version != testVersion {
 			t.Errorf("expected version %q, got %q", testVersion, version)
 		}
-
+		
 		if commit != testCommit {
 			t.Errorf("expected commit %q, got %q", testCommit, commit)
 		}
-
+		
 		if date != testDate {
 			t.Errorf("expected date %q, got %q", testDate, date)
 		}
@@ -47,21 +47,21 @@ func TestSetVersionInfo(t *testing.T) {
 func TestGetVersionString(t *testing.T) {
 	t.Run("version string is formatted correctly", func(t *testing.T) {
 		SetVersionInfo(testVersion, testCommit, testDate)
-
+		
 		versionStr := getVersionString()
 		if versionStr == "" {
 			t.Error("version string should not be empty")
 		}
-
+		
 		// Should contain all the version info
 		if !contains(versionStr, testVersion) {
 			t.Error("version string should contain version")
 		}
-
+		
 		if !contains(versionStr, testCommit) {
 			t.Error("version string should contain commit")
 		}
-
+		
 		if !contains(versionStr, testDate) {
 			t.Error("version string should contain date")
 		}

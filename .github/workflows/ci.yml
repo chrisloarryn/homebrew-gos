@@ -91,3 +91,5 @@ jobs:
       uses: securecodewarrior/github-action-gosec@master
       with:
         args: './...'
+			env:
+				GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

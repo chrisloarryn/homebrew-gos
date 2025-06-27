@@ -42,7 +42,13 @@ jobs:
       run: go vet ./...
 
     - name: Run tests
-      run: go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
+      run: |
+        if find . -name "*_test.go" | grep -q .; then
+          go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
+        else
+          echo "No test files found, skipping tests"
+          touch coverage.out
+        fi
 
     - name: Build
       run: go build -v -o gos main.go
@@ -88,8 +94,6 @@ jobs:
         go-version: '1.21'
 
     - name: Run Gosec Security Scanner
-      uses: securecodewarrior/github-action-gosec@master
-      with:
-        args: './...'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+        gosec ./...

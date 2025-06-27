@@ -41,8 +41,14 @@ jobs:
     - name: Run go vet
       run: go vet ./...
 
-    - name: Run tests
-      run: go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
+    - name: Run tests (Unix)
+			if: runner.os != 'Windows'
+			run: go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
+
+		- name: Run tests (Windows)
+			if: runner.os == 'Windows'
+			shell: cmd
+			run: go test -race -coverprofile=coverage.out -covermode=atomic -v ./...
 
     - name: Build (Unix)
       if: runner.os != 'Windows'

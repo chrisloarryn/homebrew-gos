@@ -25,7 +25,6 @@ builds:
       - arm
       - arm64
     goarm:
-      - "6"
       - "7"
     ignore:
       - goos: windows
@@ -167,8 +166,11 @@ nfpms:
   - id: gos
     package_name: gos
     file_name_template: >-
-      {{- trimsuffix .ConventionalFileName .ConventionalExtension -}}
-      {{- .ConventionalExtension -}}
+      {{ .PackageName }}_{{ .Version }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "arm64" }}arm64  
+      {{- else if eq .Arch "arm" }}{{ if eq .Arm "6" }}armv6{{ else if eq .Arm "7" }}armv7{{ else }}arm{{ end }}
+      {{- else }}{{ .Arch }}{{ end }}
     vendor: Cristobal Contreras
     homepage: https://github.com/chrisloarryn/homebrew-gos
     maintainer: Cristobal Contreras <email@example.com>

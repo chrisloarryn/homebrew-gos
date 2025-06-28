@@ -129,27 +129,6 @@ release:
     ### 📋 Full Documentation
     See the [README.md](https://github.com/chrisloarryn/homebrew-gos/blob/main/README.md) for complete documentation.
 
-# Homebrew tap (fórmula clásica)
-brews:
-  - name: gos
-    repository:
-      owner: chrisloarryn
-      name: homebrew-gos
-      branch: main
-    directory: Formula
-    homepage: https://github.com/chrisloarryn/homebrew-gos
-    description: A comprehensive Go version manager CLI
-    license: MIT
-    test: |
-      system "#{bin}/gos --help"
-    dependencies:
-      - name: curl
-      - name: git
-        type: optional
-    install: |-
-      bin.install "gos"
-      generate_completions_from_executable(bin/"gos", "completion")
-
 # Homebrew cask moderno (opcional, permite instalación con GUI o `brew install --cask`)
 homebrew_casks:
   - name: gos

@@ -5,15 +5,15 @@
 class Gos < Formula
   desc "A comprehensive Go version manager CLI"
   homepage "https://github.com/chrisloarryn/homebrew-gos"
-  version "0.0.15"
+  version "0.0.16"
   license "MIT"
 
   depends_on "curl"
   depends_on "git" => :optional
 
   on_macos do
-    url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.15/gos_Darwin_all.tar.gz"
-    sha256 "2c5b01562019110baa8c8302018baf2f0132fac88babb7f278c07c499a7210e4"
+    url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.16/gos_Darwin_all.tar.gz"
+    sha256 "2f878e98fa83feafbdf5093e8fd1fb0bd93c199ead7b5573cc48b653e6773c5c"
 
     def install
       bin.install "gos"
@@ -25,8 +25,8 @@ class Gos < Formula
 
   on_linux do
     if Hardware::CPU.intel? and Hardware::CPU.is_64_bit?
-      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.15/gos_Linux_x86_64.tar.gz"
-      sha256 "f6428a0d817e162682f70173fad53b9ee5ce72dbd01af8d03f058d967cadd8e8"
+      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.16/gos_Linux_x86_64.tar.gz"
+      sha256 "e2564066dfdeabd7548c7928dc9f8d5810f73aef74e27c2fb0775a35e18d5b38"
       def install
         bin.install "gos"
 
@@ -35,8 +35,8 @@ class Gos < Formula
       end
     end
     if Hardware::CPU.arm? and !Hardware::CPU.is_64_bit?
-      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.15/gos_Linux_armv6.tar.gz"
-      sha256 "06544bec940f1a794dbb9f62b31d359c06ba36efd061013e664d7f044c32056d"
+      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.16/gos_Linux_armv6.tar.gz"
+      sha256 "1fd1746e3e5f81da75f47af419badd23f84ccfa5e35198c67b14f328a3ea28fd"
       def install
         bin.install "gos"
 
@@ -45,8 +45,8 @@ class Gos < Formula
       end
     end
     if Hardware::CPU.arm? and Hardware::CPU.is_64_bit?
-      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.15/gos_Linux_arm64.tar.gz"
-      sha256 "ba497cda355027666822b5866934b0b5561ac2ccbe4dc41601424e12de29534b"
+      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.16/gos_Linux_arm64.tar.gz"
+      sha256 "11a5e3cd6566a3ca4b17f81838f28ae4ff0fc1c8cfa0b51bc10c9e31457bc32a"
       def install
         bin.install "gos"
 

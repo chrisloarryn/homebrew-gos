@@ -61,7 +61,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser          # OSS edition
-          version: 'v2.10.1'               # ⬅️ Pin a la rama mayor 2
+          version: 'v2.10.2'               # ⬅️ Pin a la rama mayor 2
           args: release --clean --timeout 60m
         env:
           # Usa tu PAT si lo prefieres; si no, bastaría con GITHUB_TOKEN

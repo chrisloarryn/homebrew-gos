@@ -97,10 +97,10 @@ func setupGoVersionManager() {
 
 	// Auto-use the installed version
 	blue.Println("\n▸ Activating installed Go version...")
-	useCmd := exec.Command(gBin, "use", "latest")
+	useCmd := exec.Command(gBin, "set", "latest")
 	if err := useCmd.Run(); err != nil {
 		// Try with specific version
-		fallbackUseCmd := exec.Command(gBin, "use", "1.21.5")
+		fallbackUseCmd := exec.Command(gBin, "set", "1.21.5")
 		fallbackUseCmd.Run()
 	}
 

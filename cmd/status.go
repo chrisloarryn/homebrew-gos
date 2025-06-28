@@ -82,21 +82,30 @@ func showStatus() {
 
 func showCurrentGo() {
 	yellow := color.New(color.FgYellow)
+	green := color.New(color.FgGreen)
+	blue := color.New(color.FgBlue)
 
 	if _, err := exec.LookPath("go"); err != nil {
 		yellow.Println("  ⚠️  Go is not available in PATH")
+		yellow.Println("  💡 Try running: source ~/.zshrc")
 		return
 	}
 
-	// Show version
-	fmt.Print("  Version: ")
-	versionCmd := exec.Command("go", "version")
-	versionCmd.Stdout = os.Stdout
-	versionCmd.Run()
+	// Show version with better formatting
+	if output, err := exec.Command("go", "version").Output(); err == nil {
+		version := strings.TrimSpace(string(output))
+		green.Printf("  ✅ %s\n", version)
+	}
 
-	// Show GOROOT
+	// Show GOROOT with validation
 	if output, err := exec.Command("go", "env", "GOROOT").Output(); err == nil {
-		fmt.Printf("  GOROOT: %s", string(output))
+		goroot := strings.TrimSpace(string(output))
+		expectedGoroot := filepath.Join(os.Getenv("HOME"), ".g", "go")
+		if goroot == expectedGoroot {
+			green.Printf("  ✅ GOROOT: %s\n", goroot)
+		} else {
+			blue.Printf("  ℹ️  GOROOT: %s\n", goroot)
+		}
 	}
 
 	// Show GOPATH
@@ -129,13 +138,37 @@ func showDiskUsage() {
 }
 
 func showEnvironment() {
-	envVars := []string{"GOROOT", "GOPATH", "GOPROXY", "GOSUMDB", "GOMODCACHE"}
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+	blue := color.New(color.FgBlue)
 	
-	for _, envVar := range envVars {
+	// Expected values
+	expectedGoroot := filepath.Join(os.Getenv("HOME"), ".g", "go")
+	expectedGopath := filepath.Join(os.Getenv("HOME"), "go")
+	
+	envVars := map[string]string{
+		"GOROOT": expectedGoroot,
+		"GOPATH": expectedGopath,
+		"GOPROXY": "",
+		"GOSUMDB": "",
+		"GOMODCACHE": "",
+	}
+	
+	for envVar, expected := range envVars {
 		if value := os.Getenv(envVar); value != "" {
-			fmt.Printf("  %s: %s\n", envVar, value)
+			if expected != "" && value == expected {
+				green.Printf("  ✅ %s: %s\n", envVar, value)
+			} else if expected != "" {
+				yellow.Printf("  ⚠️  %s: %s (expected: %s)\n", envVar, value, expected)
+			} else {
+				blue.Printf("  ℹ️  %s: %s\n", envVar, value)
+			}
 		} else {
-			fmt.Printf("  %s: (not set)\n", envVar)
+			if expected != "" {
+				yellow.Printf("  ❌ %s: (not set, should be: %s)\n", envVar, expected)
+			} else {
+				fmt.Printf("  %s: (not set)\n", envVar)
+			}
 		}
 	}
 
@@ -143,11 +176,28 @@ func showEnvironment() {
 	fmt.Println("  PATH (Go-related entries):")
 	path := os.Getenv("PATH")
 	pathEntries := strings.Split(path, ":")
+	hasGoBin := false
+	hasGBin := false
 	
 	for _, entry := range pathEntries {
 		if strings.Contains(entry, "go") || strings.Contains(entry, ".g") {
-			fmt.Printf("    %s\n", entry)
+			if strings.Contains(entry, ".g/bin") {
+				hasGBin = true
+				green.Printf("    ✅ %s\n", entry)
+			} else if strings.Contains(entry, "go/bin") {
+				hasGoBin = true
+				green.Printf("    ✅ %s\n", entry)
+			} else {
+				blue.Printf("    ℹ️  %s\n", entry)
+			}
 		}
+	}
+	
+	if !hasGBin {
+		yellow.Println("    ⚠️  ~/.g/bin not found in PATH")
+	}
+	if !hasGoBin {
+		yellow.Println("    ⚠️  $GOPATH/bin not found in PATH")
 	}
 }
 

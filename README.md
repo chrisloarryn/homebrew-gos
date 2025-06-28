@@ -1,17 +1,29 @@
-# GOS - Go Version Manager CLI
+# GOS - Enhanced Go Version Manager CLI
 
-GOS is a comprehensive command-line tool for managing Go versions built with Cobra. It integrates all the functionality from the shell scripts in the `scripts/` directory into a single, powerful CLI application.
+GOS is a comprehensive command-line tool for managing Go versions built with Cobra. It integrates all the functionality from the shell scripts in the `scripts/` directory into a single, powerful CLI application with enhanced environment management and automatic configuration.
 
-## Features
+## 🌟 Enhanced Features
 
-- 🔧 **Setup**: Install and configure the 'g' Go version manager
+- 🔧 **Setup**: Install and configure the 'g' Go version manager with automatic environment setup
 - 📦 **Install**: Install specific Go versions
-- 🔄 **Switch**: Switch between installed Go versions  
+- 🔄 **Switch**: Switch between installed Go versions with verification
 - 📋 **List**: View installed and available Go versions
 - 🗑️ **Clean**: Deep clean all Go installations and configurations
-- 📊 **Status**: Show comprehensive system status
+- 📊 **Status**: Show comprehensive system status with environment validation
 - 📁 **Project**: Configure Go version for specific projects
 - 🚀 **Latest**: Install and use the latest Go version
+- 🌍 **Environment**: Advanced environment configuration management
+- 🔄 **Reload**: Reload and verify Go environment configuration
+- ✅ **Auto-verification**: Automatic verification of installations and configurations
+
+## 🎯 Key Improvements
+
+- **Automatic GOPATH/GOROOT Configuration**: Sets up proper Go environment variables
+- **Environment Validation**: Checks and fixes common configuration issues
+- **Enhanced Diagnostics**: Detailed status reporting with color-coded output
+- **Cross-platform Support**: Works on macOS, Linux, and Windows
+- **Smart PATH Management**: Automatically configures PATH with Go binaries
+- **Session Reload**: Apply environment changes without restarting terminal
 
 ## Installation
 
@@ -47,26 +59,43 @@ export PATH=$PATH:$(pwd)
 
 ## Quick Start
 
-### 1. Setup the Go Version Manager
+### 1. Setup the Go Version Manager (Enhanced!)
 
-First, setup the 'g' version manager:
+First, setup the 'g' version manager with automatic configuration:
 
 ```bash
 gos setup
 ```
 
-This will:
+This enhanced setup will:
 - Download and install the 'g' version manager
-- Configure environment variables in your shell
-- Install the latest stable Go version
+- Configure GOPATH and GOROOT environment variables
+- Add Go binaries to your PATH
+- Install and activate the latest stable Go version
+- Verify the installation automatically
+- Create helpful aliases and scripts
 
-### 2. Reload Your Shell
+### 2. Verify Installation
 
 ```bash
-source ~/.zshrc  # or open a new terminal
+# Check if everything is configured correctly
+gos status
+
+# Or check detailed environment configuration
+gos env
 ```
 
-### 3. Start Using GOS
+### 3. Reload Environment (if needed)
+
+```bash
+# Reload your shell configuration
+source ~/.zshrc
+
+# Or use the built-in reload command
+gos reload
+```
+
+### 4. Start Using GOS
 
 ```bash
 # Install a specific Go version
@@ -78,11 +107,29 @@ gos use 1.21.5
 # List installed versions
 gos list
 
-# Show system status
+# Show comprehensive system status
 gos status
+
+# Fix any environment issues
+gos env --fix
 ```
 
-## Commands
+## 🚀 Enhanced Commands
+
+### Environment Management (NEW!)
+
+```bash
+# Check environment configuration
+gos env                     # Show detailed environment status
+gos env --fix              # Fix common configuration issues
+gos env --export           # Export environment variables for sourcing
+
+# Reload environment
+gos reload                 # Reload and verify Go environment
+
+# Apply environment to current session
+eval $(gos env --export)   # Quick environment setup
+```
 
 ### Version Management
 
@@ -103,25 +150,24 @@ gos list --remote           # List available remote versions
 gos remove 1.20.10          # Remove specific version
 ```
 
+### System Management
+
+```bash
+# Setup and configuration
+gos setup                  # Complete setup with verification
+gos status                 # Enhanced system status with validation
+gos clean                  # Deep clean all installations
+
+# Diagnostics and troubleshooting
+gos env                    # Check environment configuration
+gos reload                 # Fix PATH and environment issues
+```
+
 ### Project Management
 
 ```bash
 # Configure version for current project
 gos project 1.21.5          # Creates .go-version file and switches to version
-```
-
-### System Management
-
-```bash
-# Setup 'g' version manager
-gos setup                   # Install and configure 'g'
-
-# System status
-gos status                  # Show comprehensive system information
-
-# Deep cleanup
-gos clean                   # Remove all Go installations and configurations
-gos clean --force           # Skip confirmation prompt
 ```
 
 ### Help

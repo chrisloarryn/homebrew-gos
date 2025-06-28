@@ -95,6 +95,19 @@ func setupGoVersionManager() {
 		green.Println("  ✅ Go latest installed successfully")
 	}
 
+	// Auto-use the installed version
+	blue.Println("\n▸ Activating installed Go version...")
+	useCmd := exec.Command(gBin, "use", "latest")
+	if err := useCmd.Run(); err != nil {
+		// Try with specific version
+		fallbackUseCmd := exec.Command(gBin, "use", "1.21.5")
+		fallbackUseCmd.Run()
+	}
+
+	// Verify installation
+	blue.Println("\n▸ Verifying installation...")
+	verifyInstallation()
+
 	// Create help script
 	createHelpScript()
 
@@ -178,6 +191,13 @@ func configureEnvironment() {
 export GOPATH=$HOME/go
 export GOROOT=$HOME/.g/go
 export PATH=$HOME/.g/bin:$GOROOT/bin:$GOPATH/bin:$PATH
+
+# Ensure GOPATH bin directory exists
+mkdir -p $GOPATH/bin
+
+# Aliases for convenience
+alias go-reload='source ~/.zshrc && go version'
+alias go-help='cat ~/.g/go-help.sh'
 `
 
 	configAdded := false
@@ -280,5 +300,53 @@ echo ""
 	helpFile := filepath.Join(os.Getenv("HOME"), ".g", "go-help.sh")
 	if err := os.WriteFile(helpFile, []byte(helpScript), 0755); err == nil {
 		color.Blue("\n▸ Creating help script...")
+	}
+}
+
+func verifyInstallation() {
+	green := color.New(color.FgGreen)
+	red := color.New(color.FgRed)
+	yellow := color.New(color.FgYellow)
+
+	// Check if 'g' is available
+	gBin := filepath.Join(os.Getenv("HOME"), ".g", "bin", "g")
+	if _, err := os.Stat(gBin); err != nil {
+		red.Println("  ❌ 'g' binary not found")
+		return
+	}
+	green.Println("  ✅ 'g' version manager installed")
+
+	// Check if Go is available in PATH
+	if _, err := exec.LookPath("go"); err != nil {
+		yellow.Println("  ⚠️  Go not found in PATH (may need to restart shell)")
+		yellow.Println("      Please run: source ~/.zshrc")
+		return
+	}
+
+	// Check Go version
+	if output, err := exec.Command("go", "version").Output(); err == nil {
+		version := strings.TrimSpace(string(output))
+		green.Printf("  ✅ %s\n", version)
+	}
+
+	// Check GOROOT and GOPATH
+	if goroot, err := exec.Command("go", "env", "GOROOT").Output(); err == nil {
+		expectedGoroot := filepath.Join(os.Getenv("HOME"), ".g", "go")
+		actualGoroot := strings.TrimSpace(string(goroot))
+		if actualGoroot == expectedGoroot {
+			green.Printf("  ✅ GOROOT correctly set: %s\n", actualGoroot)
+		} else {
+			yellow.Printf("  ⚠️  GOROOT: %s (expected: %s)\n", actualGoroot, expectedGoroot)
+		}
+	}
+
+	if gopath, err := exec.Command("go", "env", "GOPATH").Output(); err == nil {
+		expectedGopath := filepath.Join(os.Getenv("HOME"), "go")
+		actualGopath := strings.TrimSpace(string(gopath))
+		if actualGopath == expectedGopath {
+			green.Printf("  ✅ GOPATH correctly set: %s\n", actualGopath)
+		} else {
+			yellow.Printf("  ⚠️  GOPATH: %s (expected: %s)\n", actualGopath, expectedGopath)
+		}
 	}
 }

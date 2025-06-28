@@ -168,12 +168,14 @@ release:
 # Homebrew tap
 brews:
   - name: gos
-    repository:
+    tap:                     # ✅ v2
       owner: chrisloarryn
       name: homebrew-gos
       branch: main
-    directory: Formula
-    token: "{{ .Env.GH_TOKEN }}"
+      folder: Formula        # (opcional, default "Formula")
+
+    github:                  # ✅ credenciales para hacer push al tap
+      token: "{{ .Env.GH_TOKEN }}"
     homepage: https://github.com/chrisloarryn/homebrew-gos
     description: A comprehensive Go version manager CLI
     license: MIT

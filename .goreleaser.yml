@@ -172,8 +172,8 @@ brews:
       owner: chrisloarryn
       name: homebrew-gos
       branch: main
-      directory: Formula
-      token: "{{ .Env.GH_TOKEN }}"
+    directory: Formula
+    token: "{{ .Env.GH_TOKEN }}"
     homepage: https://github.com/chrisloarryn/homebrew-gos
     description: A comprehensive Go version manager CLI
     license: MIT

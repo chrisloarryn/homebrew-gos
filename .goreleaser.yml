@@ -209,6 +209,9 @@ nfpms:
       - curl
     recommends:
       - git
+    overrides:
+      arm7:
+        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv7.deb'
 
 # Docker images (optional)
 dockers:

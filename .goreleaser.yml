@@ -131,16 +131,16 @@ release:
     #### Using curl (recommended):
     ```bash
     # macOS (Intel)
-    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    curl -sSL https://github.com/chrisloarryn/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
     
     # macOS (Apple Silicon)
-    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    curl -sSL https://github.com/chrisloarryn/homebrew-gos/releases/download/v{{.Version}}/gos_Darwin_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
     
     # Linux (x86_64)
-    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    curl -sSL https://github.com/chrisloarryn/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_x86_64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
     
     # Linux (ARM64)
-    curl -sSL https://github.com/cristobalcontreras/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
+    curl -sSL https://github.com/chrisloarryn/homebrew-gos/releases/download/v{{.Version}}/gos_Linux_arm64.tar.gz | tar -xz && sudo mv gos /usr/local/bin/
     ```
     
     #### Manual download:
@@ -163,16 +163,16 @@ release:
     ```
     
     ### 📋 Full Documentation
-    See the [README.md](https://github.com/cristobalcontreras/homebrew-gos/blob/main/README.md) for complete documentation.
+    See the [README.md](https://github.com/chrisloarryn/homebrew-gos/blob/main/README.md) for complete documentation.
 
 # Homebrew tap
 brews:
   - repository:
-      owner: cristobalcontreras
+      owner: chrisloarryn
       name: homebrew-gos
       branch: main
     folder: Formula
-    homepage: https://github.com/cristobalcontreras/homebrew-gos
+    homepage: https://github.com/chrisloarryn/homebrew-gos
     description: A comprehensive Go version manager CLI
     license: MIT
     test: |
@@ -197,7 +197,7 @@ nfpms:
     package_name: gos
     file_name_template: '{{ .ConventionalFileName }}'
     vendor: Cristobal Contreras
-    homepage: https://github.com/cristobalcontreras/homebrew-gos
+    homepage: https://github.com/chrisloarryn/homebrew-gos
     maintainer: Cristobal Contreras <email@example.com>
     description: A comprehensive Go version manager CLI
     license: MIT
@@ -212,10 +212,10 @@ nfpms:
 # Docker images (optional)
 dockers:
   - image_templates:
-      - "cristobalcontreras/gos:latest"
-      - "cristobalcontreras/gos:v{{ .Version }}"
-      - "cristobalcontreras/gos:v{{ .Major }}"
-      - "cristobalcontreras/gos:v{{ .Major }}.{{ .Minor }}"
+      - "chrisloarryn/gos:latest"
+      - "chrisloarryn/gos:v{{ .Version }}"
+      - "chrisloarryn/gos:v{{ .Major }}"
+      - "chrisloarryn/gos:v{{ .Major }}.{{ .Minor }}"
     dockerfile: Dockerfile
     use: buildx
     build_flag_templates:

@@ -3,14 +3,16 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*'            # dispara cuando hagas git tag vx.y.z
+  workflow_dispatch:     # permite lanzar manualmente
     inputs:
       tag:
         description: 'Tag to release'
         required: true
         type: string
 
+# El token por defecto que da GitHub Actions tendrá permiso a
+# contents y packages; si usas un PAT, mantenlo en GH_TOKEN.
 permissions:
   contents: write
   packages: write
@@ -18,22 +20,28 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    timeout-minutes: 30     # evita que se cuelgue indefinidamente
     steps:
+      # 1) Checkout del repo completo
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0    # GoReleaser necesita todo el historial para el changelog
 
+      # 2) Instala Go con caché automática
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.21'   # cambia si tu proyecto requiere otra versión
+          cache: true
 
+      # 3) Linter/Tests básicos antes de liberar
       - name: Run tests
         run: |
           go mod tidy
           go test -v ./...
 
+      # 4) Login a Docker Hub (solo cuando es un tag)
       - name: Login to Docker Hub
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v3
@@ -41,23 +49,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # 5) Buildx para las imágenes multi-arch de GoReleaser (opcional)
       - name: Set up Docker Buildx
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
 
+      # 6) GoReleaser v2: aquí estaba el problema
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
+          distribution: goreleaser          # OSS edition
+          version: 'v2.10.1'               # ⬅️ Pin a la rama mayor 2
+          args: release --clean --timeout 60m
         env:
+          # Usa tu PAT si lo prefieres; si no, bastaría con GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          # Uncomment if you want to push Docker images
-          # DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          # DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  # Job to test the built binaries
+  # ────────────────────────────────────────────────────────────────
+  # Prueba los binarios generados en las tres plataformas
+  # ────────────────────────────────────────────────────────────────
   test-binaries:
     needs: goreleaser
     strategy:
@@ -65,26 +77,29 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Download binary (Linux)
+      - name: Determinar TAG
+        shell: bash
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Descargar y probar (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
           curl -sSL "https://github.com/${{ github.repository }}/releases/download/${TAG}/gos_Linux_x86_64.tar.gz" | tar -xz
           chmod +x gos
           ./gos --help
 
-      - name: Download binary (macOS)
+      - name: Descargar y probar (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
           curl -sSL "https://github.com/${{ github.repository }}/releases/download/${TAG}/gos_Darwin_x86_64.tar.gz" | tar -xz
           chmod +x gos
           ./gos --help
 
-      - name: Download binary (Windows)
+      - name: Descargar y probar (Windows)
         if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          $TAG = $env:GITHUB_REF -replace 'refs/tags/', ''
-          Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/$TAG/gos_Windows_x86_64.zip" -OutFile "gos.zip"
+          $tag = "${{ env.TAG }}"
+          Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/$tag/gos_Windows_x86_64.zip" -OutFile "gos.zip"
           Expand-Archive -Path "gos.zip" -DestinationPath "."
           .\gos.exe --help

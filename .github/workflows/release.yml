@@ -91,7 +91,7 @@ jobs:
       - name: Descargar y probar (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          curl -sSL "https://github.com/${{ github.repository }}/releases/download/${TAG}/gos_Darwin_x86_64.tar.gz" | tar -xz
+          curl -sSL "https://github.com/${{ github.repository }}/releases/download/${TAG}/gos_Darwin_all.tar.gz" | tar -xz
           chmod +x gos
           ./gos --help
 

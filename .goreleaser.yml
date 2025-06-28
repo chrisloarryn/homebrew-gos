@@ -210,11 +210,10 @@ nfpms:
     recommends:
       - git
     overrides:
-      arm6:
-        formats: []
-        #file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv6.deb'
-      #arm7:
-      #  file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv7.deb'
+      arm6:                     # GOARM=6  → armhf
+        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv6.deb'
+      arm7:                     # GOARM=7  → armhf (segunda build)
+        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv7.deb'
 
 # Docker images (optional)
 dockers:

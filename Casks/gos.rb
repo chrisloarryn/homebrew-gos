@@ -2,7 +2,7 @@
 cask "gos" do
   desc "A comprehensive Go version manager CLI"
   homepage "https://github.com/chrisloarryn/homebrew-gos"
-  version "0.0.21"
+  version "0.0.22"
 
   livecheck do
     skip "Auto-generated on release."
@@ -11,18 +11,18 @@ cask "gos" do
   binary "gos"
 
   on_macos do
-    url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.21/gos_Darwin_all.tar.gz"
-    sha256 "6e5aa9c7c7e5325fbf9c6983df22529af53693640d7e2a219ddb7428e3fd6b37"
+    url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.22/gos_Darwin_all.tar.gz"
+    sha256 "ac72aafe252270e6856eeb1db3865407110e3a0e205dc11246deea9c6a6956bd"
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.21/gos_Linux_x86_64.tar.gz"
-      sha256 "5d3540b00f369f2590abd7797a0e361b9be10c97979613b969e43d13a9454928"
+      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.22/gos_Linux_x86_64.tar.gz"
+      sha256 "97063846a3f97451b65197b3a762287914bece6f9e78dd994280c570a44cbcd2"
     end
     on_arm do
-      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.21/gos_Linux_arm64.tar.gz"
-      sha256 "a6e139432300594b6e9aca7c7f63b41c3b39b28165b5094c7adfb9af78f7a0ee"
+      url "https://github.com/chrisloarryn/homebrew-gos/releases/download/v0.0.22/gos_Linux_arm64.tar.gz"
+      sha256 "32f70eaf813ba367f6cd79bd11e10262e680a9d1535a9b799741597b239281f0"
     end
   end
 

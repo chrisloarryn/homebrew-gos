@@ -149,7 +149,7 @@ func useVersion(version string) {
 
 	blue.Printf("🔄 Switching to Go %s...\n", version)
 
-	cmd := exec.Command("g", "use", version)
+	cmd := exec.Command("g", "set", version)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -245,7 +245,7 @@ func installLatest() {
 	green.Println("✅ Latest version installed")
 
 	// Switch to latest
-	useCmd := exec.Command("g", "use", "latest")
+	useCmd := exec.Command("g", "set", "latest")
 	useCmd.Run()
 
 	// Show current version

@@ -196,7 +196,11 @@ universal_binaries:
 nfpms:
   - id: gos
     package_name: gos
-    file_name_template: '{{ .ConventionalFileName }}'
+    file_name_template: >-
+      {{- trimsuffix .ConventionalFileName .ConventionalExtension -}}
+      {{- if and (eq .Arm "6") (eq .ConventionalExtension ".deb") }}6{{ end -}}
+      {{- if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end -}}
+      {{- .ConventionalExtension -}}
     vendor: Cristobal Contreras
     homepage: https://github.com/chrisloarryn/homebrew-gos
     maintainer: Cristobal Contreras <email@example.com>
@@ -209,11 +213,6 @@ nfpms:
       - curl
     recommends:
       - git
-    overrides:
-      arm6:                     # GOARM=6  → armhf
-        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv6.deb'
-      arm7:                     # GOARM=7  → armhf (segunda build)
-        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv7.deb'
 
 # Docker images (optional)
 dockers:

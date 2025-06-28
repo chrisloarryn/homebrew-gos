@@ -100,6 +100,6 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ env.TAG }}"
-          Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/$tag/ccin_Windows_x86_64.tar.gz" -OutFile "ccin.tar.gz"
-          tar -xzf "ccin.tar.gz"
-          .\ccin.exe --help
+          Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/$tag/gos_Windows_x86_64.tar.gz" -OutFile "gos.tar.gz"
+          tar -xzf "gos.tar.gz"
+          .\gos.exe --help

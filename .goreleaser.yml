@@ -210,6 +210,8 @@ nfpms:
     recommends:
       - git
     overrides:
+      arm6:
+        file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv6.deb'
       arm7:
         file_name_template: '{{ .ProjectName }}_{{ .Version }}_armv7.deb'
 

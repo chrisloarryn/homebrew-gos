@@ -185,21 +185,36 @@ func useVersion(version string) {
 		return
 	}
 
+	green.Printf("✅ Switched to Go %s\n", version)
+
 	// Update PATH automatically after successful version switch
 	updatePathForVersionManager()
 
-	green.Printf("✅ Switched to Go %s\n", version)
-
-	// Show current version
+	// Show current version and PATH update instructions
+	blue.Println("\n📋 Verifying installation...")
 	if goCmd := exec.Command("go", "version"); goCmd.Run() == nil {
-		blue.Print("📋 Current version: ")
+		blue.Print("✅ Current version: ")
 		goCmd.Stdout = os.Stdout
 		goCmd.Run()
+		fmt.Println()
 	} else {
-		yellow.Println("⚠️  Go not found in PATH. You may need to restart your terminal or run:")
+		yellow.Println("⚠️  PATH needs to be updated for this terminal session.")
+		yellow.Println("💡 To use the new Go version immediately, run:")
 		if isCommandAvailable("gobrew") {
-			yellow.Println("   $env:PATH = \"$env:USERPROFILE\\.gobrew\\current\\bin;$env:PATH\"")
+			if runtime.GOOS == "windows" {
+				yellow.Println("   $env:PATH = \"$env:USERPROFILE\\.gobrew\\current\\bin;$env:USERPROFILE\\.gobrew\\bin;$env:PATH\"")
+			} else {
+				yellow.Println("   export PATH=\"$HOME/.gobrew/current/bin:$HOME/.gobrew/bin:$PATH\"")
+			}
+		} else if isCommandAvailable("g") {
+			if runtime.GOOS == "windows" {
+				yellow.Println("   $env:PATH = \"$env:USERPROFILE\\.g\\go\\bin;$env:USERPROFILE\\.g\\bin;$env:PATH\"")
+			} else {
+				yellow.Println("   export PATH=\"$HOME/.g/go/bin:$HOME/.g/bin:$PATH\"")
+			}
 		}
+		fmt.Println()
+		blue.Println("🔄 Or simply open a new terminal window.")
 	}
 }
 
@@ -500,64 +515,68 @@ func getCurrentVersion() {
 // updatePathForVersionManager updates the PATH environment variable to include the current Go version
 func updatePathForVersionManager() {
 	homeDir := getHomeDir()
-	currentPath := os.Getenv("PATH")
-
-	var newGoBin string
-	var gobreWBin string
-
+	
 	if isCommandAvailable("gobrew") {
-		// For gobrew, add both gobrew bin and current Go bin to PATH
-		newGoBin = filepath.Join(homeDir, ".gobrew", "current", "bin")
-		gobreWBin = filepath.Join(homeDir, ".gobrew", "bin")
-
-		// Remove any existing gobrew paths from PATH to avoid duplicates
-		pathSep := ";"
-		if runtime.GOOS != "windows" {
-			pathSep = ":"
-		}
-
-		pathParts := strings.Split(currentPath, pathSep)
-		var cleanPaths []string
-
-		for _, part := range pathParts {
-			// Skip existing gobrew paths to avoid duplicates
-			if !strings.Contains(part, ".gobrew") {
-				cleanPaths = append(cleanPaths, part)
-			}
-		}
-
-		// Prepend gobrew paths
-		finalPaths := []string{newGoBin, gobreWBin}
-		finalPaths = append(finalPaths, cleanPaths...)
-		newPath := strings.Join(finalPaths, pathSep)
-
-		os.Setenv("PATH", newPath)
-
+		updatePathForGobrew(homeDir)
 	} else if isCommandAvailable("g") {
-		// For g version manager
-		newGoBin = filepath.Join(homeDir, ".g", "go", "bin")
-		gBin := filepath.Join(homeDir, ".g", "bin")
-
-		pathSep := ";"
-		if runtime.GOOS != "windows" {
-			pathSep = ":"
-		}
-
-		pathParts := strings.Split(currentPath, pathSep)
-		var cleanPaths []string
-
-		for _, part := range pathParts {
-			// Skip existing g paths to avoid duplicates
-			if !strings.Contains(part, ".g") {
-				cleanPaths = append(cleanPaths, part)
-			}
-		}
-
-		// Prepend g paths
-		finalPaths := []string{newGoBin, gBin}
-		finalPaths = append(finalPaths, cleanPaths...)
-		newPath := strings.Join(finalPaths, pathSep)
-
-		os.Setenv("PATH", newPath)
+		updatePathForG(homeDir)
 	}
+}
+
+// updatePathForGobrew updates PATH for gobrew version manager
+func updatePathForGobrew(homeDir string) {
+	currentPath := os.Getenv("PATH")
+	gobrewCurrentBin := filepath.Join(homeDir, ".gobrew", "current", "bin")
+	gobrewBin := filepath.Join(homeDir, ".gobrew", "bin")
+	
+	pathSep := ";"
+	if runtime.GOOS != "windows" {
+		pathSep = ":"
+	}
+
+	// Remove any existing gobrew paths from PATH to avoid duplicates
+	pathParts := strings.Split(currentPath, pathSep)
+	var cleanPaths []string
+
+	for _, part := range pathParts {
+		if !strings.Contains(part, ".gobrew") {
+			cleanPaths = append(cleanPaths, part)
+		}
+	}
+
+	// Prepend gobrew paths
+	finalPaths := []string{gobrewCurrentBin, gobrewBin}
+	finalPaths = append(finalPaths, cleanPaths...)
+	newPath := strings.Join(finalPaths, pathSep)
+
+	os.Setenv("PATH", newPath)
+}
+
+// updatePathForG updates PATH for g version manager
+func updatePathForG(homeDir string) {
+	currentPath := os.Getenv("PATH")
+	gGoBin := filepath.Join(homeDir, ".g", "go", "bin")
+	gBin := filepath.Join(homeDir, ".g", "bin")
+	
+	pathSep := ";"
+	if runtime.GOOS != "windows" {
+		pathSep = ":"
+	}
+
+	// Remove any existing g paths from PATH to avoid duplicates
+	pathParts := strings.Split(currentPath, pathSep)
+	var cleanPaths []string
+
+	for _, part := range pathParts {
+		if !strings.Contains(part, ".g") {
+			cleanPaths = append(cleanPaths, part)
+		}
+	}
+
+	// Prepend g paths
+	finalPaths := []string{gGoBin, gBin}
+	finalPaths = append(finalPaths, cleanPaths...)
+	newPath := strings.Join(finalPaths, pathSep)
+
+	os.Setenv("PATH", newPath)
 }

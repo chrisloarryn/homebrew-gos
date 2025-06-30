@@ -631,7 +631,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Links
 
-- **GitHub Repository**: https://github.com/cristobalcontreras/homebrew-gos
-- **Issue Tracker**: https://github.com/cristobalcontreras/homebrew-gos/issues
-- **Releases**: https://github.com/cristobalcontreras/homebrew-gos/releases
+- **GitHub Repository**: https://github.com/chrisloarryn/homebrew-gos
+- **Issue Tracker**: https://github.com/chrisloarryn/homebrew-gos/issues
+- **Releases**: https://github.com/chrisloarryn/homebrew-gos/releases
 - **Documentation**: See the `docs/` folder for detailed guides

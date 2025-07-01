@@ -18,7 +18,7 @@ func ValidateEnvironment() {
 	blue.Println("🔍 Comprehensive Environment Validation")
 	fmt.Println("")
 
-	config := getEnvironmentConfig()
+	config := getValidationConfig()
 	validationResult := &ValidationResult{}
 
 	// Run all validation checks
@@ -39,49 +39,29 @@ type ValidationResult struct {
 	HasWarnings bool
 }
 
-// EnvironmentConfig holds environment configuration data
-type EnvironmentConfig struct {
-	HomeDir         string
-	ExpectedGoroot  string
-	ExpectedGopath  string
-	RequiredPaths   []string
-	CurrentShell    string
-	ShellFile       string
+// ValidationConfig extends EnvironmentConfig with validation-specific fields
+type ValidationConfig struct {
+	EnvironmentConfig
+	HomeDir      string
+	CurrentShell string
+	ShellFile    string
 }
 
-// getEnvironmentConfig returns the expected environment configuration
-func getEnvironmentConfig() *EnvironmentConfig {
+// getValidationConfig returns the validation configuration
+func getValidationConfig() *ValidationConfig {
 	homeDir := common.GetHomeDir()
-	config := &EnvironmentConfig{
-		HomeDir: homeDir,
+	envConfig := getEnvironmentConfig()
+	
+	return &ValidationConfig{
+		EnvironmentConfig: envConfig,
+		HomeDir:          homeDir,
+		CurrentShell:     common.DetectCurrentShell(),
+		ShellFile:        common.GetShellFileForCurrentShell(common.DetectCurrentShell(), homeDir),
 	}
-
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
-		config.ExpectedGoroot = filepath.Join(homeDir, common.GobrewDir, "current", "go")
-		config.ExpectedGopath = filepath.Join(homeDir, "go")
-		config.RequiredPaths = []string{
-			filepath.Join(homeDir, common.GobrewDir, "bin"),
-			filepath.Join(homeDir, common.GobrewDir, "current", "bin"),
-			filepath.Join(homeDir, "go", "bin"),
-		}
-	} else {
-		config.ExpectedGoroot = filepath.Join(homeDir, ".g", "go")
-		config.ExpectedGopath = filepath.Join(homeDir, "go")
-		config.RequiredPaths = []string{
-			filepath.Join(homeDir, ".g", "bin"),
-			filepath.Join(homeDir, ".g", "go", "bin"),
-			filepath.Join(homeDir, "go", "bin"),
-		}
-	}
-
-	config.CurrentShell = common.DetectCurrentShell()
-	config.ShellFile = common.GetShellFileForCurrentShell(config.CurrentShell, homeDir)
-
-	return config
 }
 
 // validateEnvironmentVariables validates GOROOT and GOPATH
-func validateEnvironmentVariables(config *EnvironmentConfig, result *ValidationResult) {
+func validateEnvironmentVariables(config *ValidationConfig, result *ValidationResult) {
 	blue := color.New(color.FgBlue)
 	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
@@ -115,7 +95,7 @@ func validateEnvironmentVariables(config *EnvironmentConfig, result *ValidationR
 }
 
 // validatePathConfiguration validates PATH environment variable
-func validatePathConfiguration(config *EnvironmentConfig, result *ValidationResult) {
+func validatePathConfiguration(config *ValidationConfig, result *ValidationResult) {
 	blue := color.New(color.FgBlue)
 	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
@@ -142,7 +122,7 @@ func validatePathConfiguration(config *EnvironmentConfig, result *ValidationResu
 }
 
 // validateDirectoryStructure validates required directories
-func validateDirectoryStructure(config *EnvironmentConfig, result *ValidationResult) {
+func validateDirectoryStructure(config *ValidationConfig, result *ValidationResult) {
 	blue := color.New(color.FgBlue)
 	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
@@ -151,7 +131,7 @@ func validateDirectoryStructure(config *EnvironmentConfig, result *ValidationRes
 	fmt.Println("")
 	blue.Println("📁 Directory Structure:")
 
-	dirs := getRequiredDirectories(config)
+	dirs := getRequiredDirectoriesForValidation(config)
 
 	for name, dir := range dirs {
 		if _, err := os.Stat(dir); err == nil {
@@ -168,8 +148,8 @@ func validateDirectoryStructure(config *EnvironmentConfig, result *ValidationRes
 	}
 }
 
-// getRequiredDirectories returns the map of required directories
-func getRequiredDirectories(config *EnvironmentConfig) map[string]string {
+// getRequiredDirectoriesForValidation returns the map of required directories
+func getRequiredDirectoriesForValidation(config *ValidationConfig) map[string]string {
 	dirs := map[string]string{
 		"GOPATH":     config.ExpectedGopath,
 		"GOPATH bin": filepath.Join(config.ExpectedGopath, "bin"),
@@ -190,7 +170,7 @@ func getRequiredDirectories(config *EnvironmentConfig) map[string]string {
 }
 
 // validateShellConfiguration validates shell configuration files
-func validateShellConfiguration(config *EnvironmentConfig, result *ValidationResult) {
+func validateShellConfiguration(config *ValidationConfig, result *ValidationResult) {
 	blue := color.New(color.FgBlue)
 	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
@@ -221,17 +201,9 @@ func validateShellConfiguration(config *EnvironmentConfig, result *ValidationRes
 	}
 }
 
-// hasGoConfig checks if a file contains Go configuration
-func hasGoConfig(filename string) bool {
-	return common.HasConfigContent(filename, "Go Version Manager") ||
-		common.HasConfigContent(filename, "GOROOT") ||
-		common.HasConfigContent(filename, "GOPATH")
-}
-
 // validateVersionManager validates version manager availability
 func validateVersionManager(result *ValidationResult) bool {
 	blue := color.New(color.FgBlue)
-	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
 
 	fmt.Println("")

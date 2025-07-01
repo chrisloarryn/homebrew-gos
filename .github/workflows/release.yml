@@ -32,7 +32,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'   # cambia si tu proyecto requiere otra versión
+          go-version: '1.24'   # cambia si tu proyecto requiere otra versión
           cache: true
 
       # 3) Linter/Tests básicos antes de liberar

@@ -4,6 +4,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cristobalcontreras/gos/cmd/clean"
+	defaultcmd "github.com/cristobalcontreras/gos/cmd/default"
+	"github.com/cristobalcontreras/gos/cmd/env"
+	"github.com/cristobalcontreras/gos/cmd/install"
+	"github.com/cristobalcontreras/gos/cmd/latest"
+	"github.com/cristobalcontreras/gos/cmd/list"
+	"github.com/cristobalcontreras/gos/cmd/project"
+	"github.com/cristobalcontreras/gos/cmd/reload"
+	"github.com/cristobalcontreras/gos/cmd/remove"
+	"github.com/cristobalcontreras/gos/cmd/setup"
+	"github.com/cristobalcontreras/gos/cmd/status"
+	"github.com/cristobalcontreras/gos/cmd/use"
+	"github.com/cristobalcontreras/gos/cmd/version"
 	"github.com/spf13/cobra"
 )
 
@@ -58,13 +71,17 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(installCmd)
-	rootCmd.AddCommand(useCmd)
-	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(removeCmd)
-	rootCmd.AddCommand(cleanCmd)
-	rootCmd.AddCommand(setupCmd)
-	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(projectCmd)
-	rootCmd.AddCommand(latestCmd)
+	rootCmd.AddCommand(install.NewInstallCmd())
+	rootCmd.AddCommand(use.NewUseCmd())
+	rootCmd.AddCommand(list.NewListCmd())
+	rootCmd.AddCommand(remove.NewRemoveCmd())
+	rootCmd.AddCommand(clean.NewCleanCmd())
+	rootCmd.AddCommand(setup.NewSetupCmd())
+	rootCmd.AddCommand(status.CreateStatusCommand())
+	rootCmd.AddCommand(project.NewProjectCmd())
+	rootCmd.AddCommand(latest.NewLatestCmd())
+	rootCmd.AddCommand(reload.NewReloadCmd())
+	rootCmd.AddCommand(defaultcmd.CreateDefaultCommand())
+	rootCmd.AddCommand(env.CreateEnvCommand())
+	rootCmd.AddCommand(version.NewVersionCmd())
 }

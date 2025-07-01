@@ -4,7 +4,14 @@ GOS is a comprehensive command-line tool for managing Go versions built with Cob
 
 ## 🌟 Enhanced Features
 
-- 🔧 **Setup**: Install and configure Go version managers with intelligent detection and automatic environment setup
+- 🔧 **Setup**: Install and configure Go version m# 9. Environment management
+gos env                      # Check environment
+gos env --fix                # Fix issues
+gos reload                   # Refresh environment
+
+# 10. Clean up when needed
+gos clean                    # Interactive cleanup
+gos clean --force            # Skip confirmationswith intelligent detection and automatic environment setup
 - 📦 **Install**: Install specific Go versions using multiple version manager backends
 - 🔄 **Switch**: Switch between installed Go versions with verification
 - 📋 **List**: View installed and available Go versions (local and remote)
@@ -95,6 +102,7 @@ This enhanced setup will:
   - **gobrew** (recommended for Windows and cross-platform use)
   - **g** (traditional Unix-like systems)
   - **voidint/g** (Windows-compatible alternative)
+- **Clean old Go environment variables** (Unix systems only)
 - **Install latest Go version** automatically
 - **Configure environment variables** (GOPATH, GOROOT, PATH)
 - **Set up shell profiles** (PowerShell, Bash, Zsh)
@@ -151,6 +159,10 @@ gos env --fix
 
 # Configure project-specific version
 gos project 1.21.5   # Creates .go-version file
+
+# Set system default version
+gos default 1.21.5   # Set as default version system-wide
+gos default           # Show current default version
 ```
 
 ## 🚀 Enhanced Commands
@@ -180,6 +192,10 @@ gos latest                  # Install and use latest version
 
 # Switch versions
 gos use 1.21.5              # Switch to specific version
+
+# Set default version
+gos default 1.21.5          # Set Go 1.21.5 as default version
+gos default                 # Show current default version
 
 # List versions
 gos list                    # List installed versions
@@ -219,6 +235,7 @@ gos help                    # Show general help
 gos help [command]          # Show help for specific command
 gos version                 # Show gos version information
 gos --version               # Show version (short form)
+gos -h                      # Show help (short form)
 ```
 
 ## What Each Command Does
@@ -229,6 +246,7 @@ Intelligently sets up Go version management for your platform:
 - **Version Manager Installation**:
   - **Windows**: Installs gobrew (primary) or voidint/g (fallback)
   - **Unix-like**: Installs traditional 'g' manager
+- **Environment Cleanup**: Removes old Go environment variables from shell configs (Unix only)
 - **Environment Configuration**: Sets up shell profiles (PowerShell, Bash, Zsh)
 - **Latest Go Installation**: Installs and activates latest stable Go version
 - **Installation Prevention**: Avoids duplicate installations (use `--force` to override)
@@ -260,9 +278,10 @@ Environment refresh without terminal restart:
 ### Version Management Commands
 Unified interface for multiple version managers:
 - **Install/Switch**: Works with gobrew, g, or voidint/g automatically
-- **List Management**: Shows versions from any installed version manager
+- **List Management**: Shows versions from any installed version manager with improved detection
 - **Remote Browsing**: Lists available versions from official sources
 - **Project Configuration**: Creates .go-version files for project-specific versions
+- **Default Version Management**: Set and show system-wide default Go versions
 - **Comprehensive Status**: Shows detailed system information with diagnostics
 
 ## Environment Variables
@@ -367,14 +386,20 @@ go version                   # Verify current version
 cd my-go-project
 gos project 1.20.10         # Creates .go-version file
 
-# 6. Check comprehensive status
+# 6. Set system default version
+gos default 1.21.5          # Set as system default
+
+# 7. Check comprehensive status
 gos status
 
 # 7. List all versions
 gos list                     # Show installed
 gos list --remote            # Show available
 
-# 8. Environment management
+# 8. Set default version
+gos default 1.21.5          # Set system default
+
+# 9. Environment management
 gos env                      # Check environment
 gos env --fix                # Fix issues
 gos reload                   # Refresh environment

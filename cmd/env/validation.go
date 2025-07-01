@@ -15,82 +15,118 @@ import (
 // ValidateEnvironment runs comprehensive environment validation
 func ValidateEnvironment() {
 	blue := color.New(color.FgBlue)
-	green := color.New(color.FgGreen)
-	yellow := color.New(color.FgYellow)
-	red := color.New(color.FgRed)
-
 	blue.Println("🔍 Comprehensive Environment Validation")
 	fmt.Println("")
 
-	hasErrors := false
-	hasWarnings := false
+	config := getEnvironmentConfig()
+	validationResult := &ValidationResult{}
 
-	// Check basic environment variables
+	// Run all validation checks
+	validateEnvironmentVariables(config, validationResult)
+	validatePathConfiguration(config, validationResult)
+	validateDirectoryStructure(config, validationResult)
+	validateShellConfiguration(config, validationResult)
+	hasVersionManager := validateVersionManager(validationResult)
+	validateGoBinary(hasVersionManager, validationResult)
+
+	// Display summary
+	displayValidationSummary(validationResult)
+}
+
+// ValidationResult holds the results of environment validation
+type ValidationResult struct {
+	HasErrors   bool
+	HasWarnings bool
+}
+
+// EnvironmentConfig holds environment configuration data
+type EnvironmentConfig struct {
+	HomeDir         string
+	ExpectedGoroot  string
+	ExpectedGopath  string
+	RequiredPaths   []string
+	CurrentShell    string
+	ShellFile       string
+}
+
+// getEnvironmentConfig returns the expected environment configuration
+func getEnvironmentConfig() *EnvironmentConfig {
 	homeDir := common.GetHomeDir()
-	var expectedGoroot, expectedGopath string
-	var requiredPaths []string
+	config := &EnvironmentConfig{
+		HomeDir: homeDir,
+	}
 
-	if runtime.GOOS == "windows" {
-		if common.IsCommandAvailable("gobrew") {
-			expectedGoroot = filepath.Join(homeDir, ".gobrew", "current", "go")
-			expectedGopath = filepath.Join(homeDir, "go")
-			requiredPaths = []string{
-				filepath.Join(homeDir, ".gobrew", "bin"),
-				filepath.Join(homeDir, ".gobrew", "current", "bin"),
-				filepath.Join(homeDir, "go", "bin"),
-			}
-		} else {
-			expectedGoroot = filepath.Join(homeDir, ".g", "go")
-			expectedGopath = filepath.Join(homeDir, "go")
-			requiredPaths = []string{
-				filepath.Join(homeDir, ".g", "bin"),
-				filepath.Join(homeDir, ".g", "go", "bin"),
-				filepath.Join(homeDir, "go", "bin"),
-			}
+	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
+		config.ExpectedGoroot = filepath.Join(homeDir, common.GobrewDir, "current", "go")
+		config.ExpectedGopath = filepath.Join(homeDir, "go")
+		config.RequiredPaths = []string{
+			filepath.Join(homeDir, common.GobrewDir, "bin"),
+			filepath.Join(homeDir, common.GobrewDir, "current", "bin"),
+			filepath.Join(homeDir, "go", "bin"),
 		}
 	} else {
-		expectedGoroot = filepath.Join(homeDir, ".g", "go")
-		expectedGopath = filepath.Join(homeDir, "go")
-		requiredPaths = []string{
+		config.ExpectedGoroot = filepath.Join(homeDir, ".g", "go")
+		config.ExpectedGopath = filepath.Join(homeDir, "go")
+		config.RequiredPaths = []string{
 			filepath.Join(homeDir, ".g", "bin"),
 			filepath.Join(homeDir, ".g", "go", "bin"),
 			filepath.Join(homeDir, "go", "bin"),
 		}
 	}
 
+	config.CurrentShell = common.DetectCurrentShell()
+	config.ShellFile = common.GetShellFileForCurrentShell(config.CurrentShell, homeDir)
+
+	return config
+}
+
+// validateEnvironmentVariables validates GOROOT and GOPATH
+func validateEnvironmentVariables(config *EnvironmentConfig, result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+	red := color.New(color.FgRed)
+
 	blue.Println("📋 Environment Variables:")
-	
+
 	// GOROOT validation
 	actualGoroot := os.Getenv("GOROOT")
-	if actualGoroot == expectedGoroot {
+	if actualGoroot == config.ExpectedGoroot {
 		green.Println("  ✅ GOROOT is correctly set")
 	} else if actualGoroot == "" {
 		red.Println("  ❌ GOROOT is not set")
-		hasErrors = true
+		result.HasErrors = true
 	} else {
-		yellow.Printf("  ⚠️  GOROOT is set to %s (expected %s)\n", actualGoroot, expectedGoroot)
-		hasWarnings = true
+		yellow.Printf("  ⚠️  GOROOT is set to %s (expected %s)\n", actualGoroot, config.ExpectedGoroot)
+		result.HasWarnings = true
 	}
 
 	// GOPATH validation
 	actualGopath := os.Getenv("GOPATH")
-	if actualGopath == expectedGopath {
+	if actualGopath == config.ExpectedGopath {
 		green.Println("  ✅ GOPATH is correctly set")
 	} else if actualGopath == "" {
 		red.Println("  ❌ GOPATH is not set")
-		hasErrors = true
+		result.HasErrors = true
 	} else {
-		yellow.Printf("  ⚠️  GOPATH is set to %s (expected %s)\n", actualGopath, expectedGopath)
-		hasWarnings = true
+		yellow.Printf("  ⚠️  GOPATH is set to %s (expected %s)\n", actualGopath, config.ExpectedGopath)
+		result.HasWarnings = true
 	}
+}
 
-	// PATH validation
+// validatePathConfiguration validates PATH environment variable
+func validatePathConfiguration(config *EnvironmentConfig, result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
 	fmt.Println("")
 	blue.Println("🛤️  PATH Validation:")
+	
 	path := os.Getenv("PATH")
-
 	pathMissing := 0
-	for _, reqPath := range requiredPaths {
+
+	for _, reqPath := range config.RequiredPaths {
 		if strings.Contains(path, reqPath) {
 			green.Printf("  ✅ %s is in PATH\n", reqPath)
 		} else {
@@ -98,30 +134,24 @@ func ValidateEnvironment() {
 			pathMissing++
 		}
 	}
-	
+
 	if pathMissing > 0 {
 		fmt.Printf("    💡 Run 'gos setup' or 'gos env --fix' to add missing PATH entries\n")
-		hasWarnings = true
+		result.HasWarnings = true
 	}
+}
 
-	// Directory structure validation
+// validateDirectoryStructure validates required directories
+func validateDirectoryStructure(config *EnvironmentConfig, result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+	red := color.New(color.FgRed)
+
 	fmt.Println("")
 	blue.Println("📁 Directory Structure:")
-	dirs := map[string]string{
-		"GOPATH": expectedGopath,
-		"GOPATH bin": filepath.Join(expectedGopath, "bin"),
-	}
 
-	// Only add version manager directories to critical check if we detect them
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
-		dirs["gobrew directory"] = filepath.Join(homeDir, ".gobrew")
-		dirs["gobrew bin"] = filepath.Join(homeDir, ".gobrew", "bin")
-		dirs["Go installation"] = expectedGoroot
-	} else if common.IsGInstalled() {
-		dirs["g directory"] = filepath.Join(homeDir, ".g")
-		dirs["g bin directory"] = filepath.Join(homeDir, ".g", "bin")
-		dirs["Go installation"] = expectedGoroot
-	}
+	dirs := getRequiredDirectories(config)
 
 	for name, dir := range dirs {
 		if _, err := os.Stat(dir); err == nil {
@@ -129,104 +159,178 @@ func ValidateEnvironment() {
 		} else {
 			if strings.Contains(name, "GOPATH") {
 				yellow.Printf("  ⚠️  %s missing: %s\n", name, dir)
-				hasWarnings = true
+				result.HasWarnings = true
 			} else {
 				red.Printf("  ❌ %s missing: %s\n", name, dir)
-				hasErrors = true
+				result.HasErrors = true
 			}
 		}
 	}
+}
 
-	// Shell configuration validation
+// getRequiredDirectories returns the map of required directories
+func getRequiredDirectories(config *EnvironmentConfig) map[string]string {
+	dirs := map[string]string{
+		"GOPATH":     config.ExpectedGopath,
+		"GOPATH bin": filepath.Join(config.ExpectedGopath, "bin"),
+	}
+
+	// Add version manager directories if detected
+	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
+		dirs["gobrew directory"] = filepath.Join(config.HomeDir, ".gobrew")
+		dirs["gobrew bin"] = filepath.Join(config.HomeDir, ".gobrew", "bin")
+		dirs["Go installation"] = config.ExpectedGoroot
+	} else if common.IsGInstalled() {
+		dirs["g directory"] = filepath.Join(config.HomeDir, ".g")
+		dirs["g bin directory"] = filepath.Join(config.HomeDir, ".g", "bin")
+		dirs["Go installation"] = config.ExpectedGoroot
+	}
+
+	return dirs
+}
+
+// validateShellConfiguration validates shell configuration files
+func validateShellConfiguration(config *EnvironmentConfig, result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
 	fmt.Println("")
 	blue.Println("🐚 Shell Configuration:")
-	
-	// Detect current shell
-	currentShell := common.DetectCurrentShell()
-	blue.Printf("  🔍 Detected shell: %s\n", currentShell)
-	
-	// Get shell file for current shell
-	shellFile := common.GetShellFileForCurrentShell(currentShell, homeDir)
-	
-	if shellFile == "" {
+	blue.Printf("  🔍 Detected shell: %s\n", config.CurrentShell)
+
+	if config.ShellFile == "" {
 		yellow.Println("  ⚠️  Could not determine shell configuration file")
-		hasWarnings = true
-	} else {
-		fullPath := filepath.Join(homeDir, shellFile)
-		if _, err := os.Stat(fullPath); err == nil {
-			if hasGoConfig(fullPath) {
-				green.Printf("  ✅ Go configuration found in %s\n", shellFile)
-			} else {
-				yellow.Printf("  ⚠️  %s exists but no Go configuration found\n", shellFile)
-				fmt.Printf("    💡 Run 'gos setup' or 'gos env --fix' to add configuration\n")
-				hasWarnings = true
-			}
-		} else {
-			yellow.Printf("  ⚠️  Shell file %s does not exist\n", shellFile)
-			fmt.Printf("    💡 Run 'gos setup' to create configuration\n")
-			hasWarnings = true
-		}
+		result.HasWarnings = true
+		return
 	}
 
-	// Version manager validation
+	fullPath := filepath.Join(config.HomeDir, config.ShellFile)
+	if _, err := os.Stat(fullPath); err == nil {
+		if hasGoConfig(fullPath) {
+			green.Printf("  ✅ Go configuration found in %s\n", config.ShellFile)
+		} else {
+			yellow.Printf("  ⚠️  %s exists but no Go configuration found\n", config.ShellFile)
+			fmt.Printf("    💡 Run 'gos setup' or 'gos env --fix' to add configuration\n")
+			result.HasWarnings = true
+		}
+	} else {
+		yellow.Printf("  ⚠️  Shell file %s does not exist\n", config.ShellFile)
+		fmt.Printf("    💡 Run 'gos setup' to create configuration\n")
+		result.HasWarnings = true
+	}
+}
+
+// hasGoConfig checks if a file contains Go configuration
+func hasGoConfig(filename string) bool {
+	return common.HasConfigContent(filename, "Go Version Manager") ||
+		common.HasConfigContent(filename, "GOROOT") ||
+		common.HasConfigContent(filename, "GOPATH")
+}
+
+// validateVersionManager validates version manager availability
+func validateVersionManager(result *ValidationResult) bool {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
 	fmt.Println("")
 	blue.Println("🔧 Version Manager:")
-	hasVersionManager := false
+
 	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
-		green.Println("  ✅ 'gobrew' version manager is available")
-		hasVersionManager = true
-		if versions := common.GetGobrewVersions(); len(versions) > 0 {
-			green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
-		} else {
-			yellow.Println("  ⚠️  No Go versions installed with gobrew")
-			hasWarnings = true
-		}
+		return validateGobrewManager(result)
 	} else if common.IsGInstalled() {
-		green.Println("  ✅ 'g' version manager is available")
-		hasVersionManager = true
-		if versions := common.GetInstalledVersions(); len(versions) > 0 {
-			green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
-		} else {
-			yellow.Println("  ⚠️  No Go versions installed with g")
-			hasWarnings = true
-		}
-	} else {
-		yellow.Println("  ⚠️  No version manager found (gobrew or g)")
-		fmt.Println("    💡 Run 'gos setup' to install a version manager")
-		hasWarnings = true
+		return validateGManager(result)
 	}
 
-	// Go binary validation - only check if we have a version manager
+	yellow.Println("  ⚠️  No version manager found (gobrew or g)")
+	fmt.Println("    💡 Run 'gos setup' to install a version manager")
+	result.HasWarnings = true
+	return false
+}
+
+// validateGobrewManager validates gobrew version manager
+func validateGobrewManager(result *ValidationResult) bool {
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
+	green.Println("  ✅ 'gobrew' version manager is available")
+	
+	if versions := common.GetGobrewVersions(); len(versions) > 0 {
+		green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
+	} else {
+		yellow.Println("  ⚠️  No Go versions installed with gobrew")
+		result.HasWarnings = true
+	}
+	
+	return true
+}
+
+// validateGManager validates g version manager
+func validateGManager(result *ValidationResult) bool {
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
+	green.Println("  ✅ 'g' version manager is available")
+	
+	if versions := common.GetInstalledVersions(); len(versions) > 0 {
+		green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
+	} else {
+		yellow.Println("  ⚠️  No Go versions installed with g")
+		result.HasWarnings = true
+	}
+	
+	return true
+}
+
+// validateGoBinary validates Go binary availability
+func validateGoBinary(hasVersionManager bool, result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+
 	fmt.Println("")
 	blue.Println("🐹 Go Binary:")
-	if hasVersionManager {
-		if goPath, err := exec.LookPath("go"); err == nil {
-			green.Printf("  ✅ Go binary found: %s\n", goPath)
-			
-			// Check if go version works
-			if output, err := exec.Command("go", "version").Output(); err == nil {
-				version := strings.TrimSpace(string(output))
-				green.Printf("  ✅ Go version: %s\n", version)
-			} else {
-				yellow.Println("  ⚠️  Go binary exists but 'go version' failed")
-				hasWarnings = true
-			}
-		} else {
-			yellow.Println("  ⚠️  Go binary not found in PATH")
-			fmt.Println("    💡 Install a Go version with 'gos install latest'")
-			hasWarnings = true
-		}
-	} else {
+
+	if !hasVersionManager {
 		yellow.Println("  ℹ️  Skipping Go binary check (no version manager)")
+		return
 	}
 
-	// Summary
+	goPath, err := exec.LookPath("go")
+	if err != nil {
+		yellow.Println("  ⚠️  Go binary not found in PATH")
+		fmt.Println("    💡 Install a Go version with 'gos install latest'")
+		result.HasWarnings = true
+		return
+	}
+
+	green.Printf("  ✅ Go binary found: %s\n", goPath)
+
+	// Check if go version works
+	if output, err := exec.Command("go", "version").Output(); err == nil {
+		version := strings.TrimSpace(string(output))
+		green.Printf("  ✅ Go version: %s\n", version)
+	} else {
+		yellow.Println("  ⚠️  Go binary exists but 'go version' failed")
+		result.HasWarnings = true
+	}
+}
+
+// displayValidationSummary displays the final validation summary
+func displayValidationSummary(result *ValidationResult) {
+	blue := color.New(color.FgBlue)
+	green := color.New(color.FgGreen)
+	yellow := color.New(color.FgYellow)
+	red := color.New(color.FgRed)
+
 	fmt.Println("")
 	blue.Println("📊 Validation Summary:")
-	if hasErrors {
+
+	if result.HasErrors {
 		red.Println("  ❌ Environment has critical issues that need fixing")
 		fmt.Println("  💡 Run 'gos env --fix' to attempt automatic fixes")
-	} else if hasWarnings {
+	} else if result.HasWarnings {
 		yellow.Println("  ⚠️  Environment has minor issues")
 		fmt.Println("  💡 Consider running 'gos env --fix' to optimize configuration")
 	} else {

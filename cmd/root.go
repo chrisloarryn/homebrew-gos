@@ -16,7 +16,7 @@ import (
 	"github.com/cristobalcontreras/gos/cmd/setup"
 	"github.com/cristobalcontreras/gos/cmd/status"
 	"github.com/cristobalcontreras/gos/cmd/use"
-	"github.com/cristobalcontreras/gos/cmd/version"
+	versioncmd "github.com/cristobalcontreras/gos/cmd/version"
 	"github.com/spf13/cobra"
 )
 
@@ -83,5 +83,5 @@ func init() {
 	rootCmd.AddCommand(reload.NewReloadCmd())
 	rootCmd.AddCommand(defaultcmd.CreateDefaultCommand())
 	rootCmd.AddCommand(env.CreateEnvCommand())
-	rootCmd.AddCommand(version.NewVersionCmd())
+	rootCmd.AddCommand(versioncmd.NewVersionCmd())
 }

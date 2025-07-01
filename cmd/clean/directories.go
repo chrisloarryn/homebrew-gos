@@ -52,20 +52,34 @@ func CleanOtherManagers() {
 	}
 
 	for _, dir := range managerDirs {
-		if _, err := os.Stat(dir); err == nil {
-			// For sdk, only remove go* directories
-			if strings.HasSuffix(dir, "sdk") {
-				if entries, err := os.ReadDir(dir); err == nil {
-					for _, entry := range entries {
-						if strings.HasPrefix(entry.Name(), "go") {
-							goSdkDir := filepath.Join(dir, entry.Name())
-							os.RemoveAll(goSdkDir)
-						}
-					}
-				}
-			} else {
-				os.RemoveAll(dir)
-			}
+		cleanManagerDirectory(dir)
+	}
+}
+
+// cleanManagerDirectory removes a specific manager directory
+func cleanManagerDirectory(dir string) {
+	if _, err := os.Stat(dir); err != nil {
+		return // Directory doesn't exist
+	}
+
+	if strings.HasSuffix(dir, "sdk") {
+		cleanSdkDirectory(dir)
+	} else {
+		os.RemoveAll(dir)
+	}
+}
+
+// cleanSdkDirectory removes only Go-related directories from SDK folder
+func cleanSdkDirectory(sdkDir string) {
+	entries, err := os.ReadDir(sdkDir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), "go") {
+			goSdkDir := filepath.Join(sdkDir, entry.Name())
+			os.RemoveAll(goSdkDir)
 		}
 	}
 }

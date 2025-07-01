@@ -73,52 +73,67 @@ func showInstalledVersions() {
 
 // showInstalledVersionsWithGobrew lists installed versions using gobrew
 func showInstalledVersionsWithGobrew() {
-	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
 
-	if output, err := exec.Command("gobrew", "ls").Output(); err == nil {
-		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-		if len(lines) > 0 && lines[0] != "" {
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-				if line != "" {
-					if strings.Contains(line, "*") {
-						green.Printf("  ✅ %s (current)\n", strings.Replace(line, "*", "", -1))
-					} else {
-						fmt.Printf("  📦 %s\n", line)
-					}
-				}
-			}
-		} else {
-			yellow.Println("  No Go versions installed")
-		}
-	} else {
+	output, err := exec.Command("gobrew", "ls").Output()
+	if err != nil {
 		yellow.Printf("  Error listing gobrew versions: %v\n", err)
+		return
 	}
+
+	lines := parseVersionOutput(output)
+	if len(lines) == 0 {
+		yellow.Println("  No Go versions installed")
+		return
+	}
+
+	displayVersions(lines)
 }
 
 // showInstalledVersionsWithG lists installed versions using g
 func showInstalledVersionsWithG() {
-	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
 
-	if output, err := exec.Command("g", "ls").Output(); err == nil {
-		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-		if len(lines) > 0 && lines[0] != "" {
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-				if line != "" {
-					if strings.Contains(line, "*") {
-						green.Printf("  ✅ %s (current)\n", strings.Replace(line, "*", "", -1))
-					} else {
-						fmt.Printf("  📦 %s\n", line)
-					}
-				}
-			}
-		} else {
-			yellow.Println("  No Go versions installed")
-		}
-	} else {
+	output, err := exec.Command("g", "ls").Output()
+	if err != nil {
 		yellow.Printf("  Error listing g versions: %v\n", err)
+		return
+	}
+
+	lines := parseVersionOutput(output)
+	if len(lines) == 0 {
+		yellow.Println("  No Go versions installed")
+		return
+	}
+
+	displayVersions(lines)
+}
+
+// parseVersionOutput parses the output from version manager commands
+func parseVersionOutput(output []byte) []string {
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	var validLines []string
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			validLines = append(validLines, line)
+		}
+	}
+	
+	return validLines
+}
+
+// displayVersions displays the parsed version lines with appropriate formatting
+func displayVersions(lines []string) {
+	green := color.New(color.FgGreen)
+	
+	for _, line := range lines {
+		if strings.Contains(line, "*") {
+			cleanLine := strings.Replace(line, "*", "", -1)
+			green.Printf("  ✅ %s (current)\n", cleanLine)
+		} else {
+			fmt.Printf("  📦 %s\n", line)
+		}
 	}
 }

@@ -45,7 +45,7 @@ func removeVersion(version string) {
 			Saucer: "=", SaucerHead: ">", SaucerPadding: " ", BarStart: "[", BarEnd: "]",
 		}),
 	)
-	
+
 	// Start progress bar in goroutine
 	done := make(chan bool)
 	go func() {
@@ -61,20 +61,14 @@ func removeVersion(version string) {
 	}()
 
 	var cmd *exec.Cmd
-	
+
 	if common.IsCommandAvailable("gobrew") {
 		cmd = exec.Command("gobrew", "uninstall", version)
 	} else {
-		gPath := common.FindGPath()
-		
-		if gPath == "" {
-			done <- true
-			bar.Finish()
-			red.Println("❌ No version manager available")
-			return
-		}
-		
-		cmd = exec.Command(gPath, "remove", version)
+		done <- true
+		bar.Finish()
+		red.Println("❌ No version manager available")
+		return
 	}
 
 	if err := cmd.Run(); err != nil {

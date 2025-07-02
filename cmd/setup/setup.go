@@ -2,12 +2,9 @@ package setup
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 
-	"github.com/cristobalcontreras/gos/cmd/common"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -16,16 +13,16 @@ import (
 func NewSetupCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup",
-		Short: "Setup the 'g' Go version manager",
-		Long: `Install and configure the 'g' Go version manager.
-This will download and install 'g', configure environment variables,
+		Short: "Setup Go version manager (gobrew)",
+		Long: `Install and configure the gobrew Go version manager.
+This will install gobrew, configure environment variables,
 and install the latest stable Go version.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			force, _ := cmd.Flags().GetBool("force")
 			setupGoVersionManager(force)
 		},
 	}
-	
+
 	cmd.Flags().BoolP("force", "f", false, "Force reinstallation even if version managers are already installed")
 	return cmd
 }
@@ -95,7 +92,7 @@ func displaySystemInfo() {
 // handleWindowsSetup manages Windows-specific setup
 func handleWindowsSetup() {
 	yellow := color.New(color.FgYellow)
-	
+
 	yellow.Println("\n⚠️  Windows detected.")
 	yellow.Println("   The original 'g' version manager doesn't support Windows.")
 	yellow.Println("   🚀 Using Windows-compatible alternatives...")
@@ -115,30 +112,17 @@ func handleWindowsSetup() {
 func performUnixSetup() bool {
 	blue := color.New(color.FgBlue)
 	green := color.New(color.FgGreen)
-	yellow := color.New(color.FgYellow)
 	red := color.New(color.FgRed)
 
-	blue.Println("\n▸ Downloading and installing 'g'...")
-
-	// Create directory for g
-	homeDir := common.GetHomeDir()
-	gDir := filepath.Join(homeDir, ".g")
-	if err := os.MkdirAll(gDir, 0755); err != nil {
-		red.Printf("❌ Error creating .g directory: %v\n", err)
-		return false
+	// Install gobrew
+	blue.Println("\n▸ Installing 'gobrew'...")
+	if installGobrew() {
+		green.Println("  ✅ 'gobrew' installed successfully")
+		return true
 	}
 
-	// Try to install g using the install script
-	if !installGWithScript() {
-		yellow.Println("  ❌ Error installing 'g'. Trying alternative method...")
-		if !installGManually() {
-			red.Println("  ❌ Failed to install 'g'")
-			return false
-		}
-	}
-
-	green.Println("  ✅ 'g' installed successfully")
-	return true
+	red.Println("  ❌ Failed to install 'gobrew'")
+	return false
 }
 
 // completeSetup finishes the setup process
@@ -168,17 +152,11 @@ func completeSetup() {
 func installLatestGo() {
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
-	
-	homeDir := common.GetHomeDir()
-	gBin := filepath.Join(homeDir, ".g", "bin", "g")
-	if runtime.GOOS == "windows" {
-		gBin += ".exe"
-	}
 
-	installCmd := exec.Command(gBin, "install", "latest")
+	installCmd := exec.Command("gobrew", "install", "latest")
 	if err := installCmd.Run(); err != nil {
 		yellow.Println("  ℹ️  Installing known specific version...")
-		fallbackCmd := exec.Command(gBin, "install", "1.21.5")
+		fallbackCmd := exec.Command("gobrew", "install", "1.21.5")
 		fallbackCmd.Run()
 	} else {
 		green.Println("  ✅ Go latest installed successfully")
@@ -187,16 +165,10 @@ func installLatestGo() {
 
 // activateLatestGo activates the installed Go version
 func activateLatestGo() {
-	homeDir := common.GetHomeDir()
-	gBin := filepath.Join(homeDir, ".g", "bin", "g")
-	if runtime.GOOS == "windows" {
-		gBin += ".exe"
-	}
-
-	useCmd := exec.Command(gBin, "set", "latest")
+	useCmd := exec.Command("gobrew", "use", "latest")
 	if err := useCmd.Run(); err != nil {
 		// Try with specific version
-		fallbackUseCmd := exec.Command(gBin, "set", "1.21.5")
+		fallbackUseCmd := exec.Command("gobrew", "use", "1.21.5")
 		fallbackUseCmd.Run()
 	}
 }
@@ -205,7 +177,7 @@ func activateLatestGo() {
 func displayNextSteps() {
 	yellow := color.New(color.FgYellow)
 	blue := color.New(color.FgBlue)
-	
+
 	fmt.Println("")
 	yellow.Println("📋 Next steps:")
 
@@ -215,11 +187,11 @@ func displayNextSteps() {
 		fmt.Println("1. Run: source ~/.zshrc  (or open a new terminal)")
 	}
 
-	fmt.Println("2. Verify: g --version")
+	fmt.Println("2. Verify: gobrew --version")
 	fmt.Println("3. Use: gos list  (to see installed versions)")
 	fmt.Println("")
-	yellow.Println("💡 To see all available commands:")
-	fmt.Println("   ~/.g/go-help.sh")
+	yellow.Println("💡 To see all available gobrew commands:")
+	fmt.Println("   gobrew help")
 	fmt.Println("")
 	blue.Println("🚀 Quick examples:")
 	fmt.Println("   gos install 1.21.5     # Install Go 1.21.5")

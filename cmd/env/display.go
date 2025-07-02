@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/cristobalcontreras/gos/cmd/common"
+	"github.com/fatih/color"
 )
 
 // EnvironmentConfig holds the expected environment configuration
@@ -27,7 +26,7 @@ func ShowDetailedEnvironment() {
 	fmt.Println("")
 
 	config := getEnvironmentConfig()
-	
+
 	checkGoEnvironmentVariables(config)
 	checkPATHEntries(config)
 	checkDirectories(config)
@@ -36,14 +35,15 @@ func ShowDetailedEnvironment() {
 	fmt.Println("💡 Use 'gos env --fix' to automatically fix configuration issues")
 }
 
-// getEnvironmentConfig returns the expected environment configuration based on OS and version manager
+// getEnvironmentConfig returns the expected environment configuration based on version manager preference
 func getEnvironmentConfig() EnvironmentConfig {
 	homeDir := common.GetHomeDir()
-	
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
+
+	// Prefer gobrew over .g in all systems
+	if common.IsCommandAvailable("gobrew") {
 		return getGobrewConfig(homeDir)
 	}
-	
+
 	return getDefaultConfig(homeDir)
 }
 
@@ -51,7 +51,7 @@ func getEnvironmentConfig() EnvironmentConfig {
 func getGobrewConfig(homeDir string) EnvironmentConfig {
 	expectedGoroot := filepath.Join(homeDir, common.GobrewDir, "current", "go")
 	expectedGopath := filepath.Join(homeDir, "go")
-	
+
 	return EnvironmentConfig{
 		ExpectedGoroot: expectedGoroot,
 		ExpectedGopath: expectedGopath,
@@ -74,7 +74,7 @@ func getGobrewConfig(homeDir string) EnvironmentConfig {
 func getDefaultConfig(homeDir string) EnvironmentConfig {
 	expectedGoroot := filepath.Join(homeDir, ".g", "go")
 	expectedGopath := filepath.Join(homeDir, "go")
-	
+
 	return EnvironmentConfig{
 		ExpectedGoroot: expectedGoroot,
 		ExpectedGopath: expectedGopath,
@@ -124,10 +124,10 @@ func checkGoEnvironmentVariables(config EnvironmentConfig) {
 func checkPATHEntries(config EnvironmentConfig) {
 	green := color.New(color.FgGreen)
 	red := color.New(color.FgRed)
-	
+
 	path := os.Getenv("PATH")
 	fmt.Println("\nPATH entries:")
-	
+
 	for _, reqPath := range config.RequiredPaths {
 		if strings.Contains(path, reqPath) {
 			green.Printf("✅ %s\n", reqPath)
@@ -141,9 +141,9 @@ func checkPATHEntries(config EnvironmentConfig) {
 func checkDirectories(config EnvironmentConfig) {
 	green := color.New(color.FgGreen)
 	red := color.New(color.FgRed)
-	
+
 	fmt.Println("\nDirectories:")
-	
+
 	for name, dir := range config.DirectoryChecks {
 		if _, err := os.Stat(dir); err == nil {
 			green.Printf("✅ %s: %s\n", name, dir)

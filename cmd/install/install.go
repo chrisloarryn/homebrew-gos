@@ -11,7 +11,7 @@ func NewInstallCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "install [version]",
 		Short: "Install a specific Go version",
-		Long: `Install a specific Go version using any available version manager (gobrew or g).
+		Long: `Install a specific Go version using gobrew.
 If no version is specified, installs the latest stable version.`,
 		Example: `  gos install 1.21.5    # Install Go 1.21.5
   gos install latest     # Install latest version
@@ -30,17 +30,17 @@ If no version is specified, installs the latest stable version.`,
 			InstallVersion(version)
 		},
 	}
-	
+
 	return cmd
 }
 
-// checkVersionManagerAvailable verifies if a version manager is available
+// checkVersionManagerAvailable verifies if gobrew is available
 func checkVersionManagerAvailable() bool {
-	if common.IsCommandAvailable("gobrew") || common.IsCommandAvailable("g") {
+	if common.IsCommandAvailable("gobrew") {
 		return true
 	}
 
-	color.Red("❌ Error: No version manager is installed.")
+	color.Red("❌ Error: gobrew is not installed.")
 	color.Yellow("💡 Run first: gos setup")
 	return false
 }

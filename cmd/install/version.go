@@ -2,12 +2,9 @@ package install
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"time"
 
-	"github.com/cristobalcontreras/gos/cmd/common"
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar/v3"
 )
@@ -30,7 +27,7 @@ func InstallVersion(version string) {
 			Saucer: "=", SaucerHead: ">", SaucerPadding: " ", BarStart: "[", BarEnd: "]",
 		}),
 	)
-	
+
 	// Start progress bar in goroutine
 	done := make(chan bool)
 	go func() {
@@ -45,36 +42,7 @@ func InstallVersion(version string) {
 		}
 	}()
 
-	var cmd *exec.Cmd
-	homeDir := common.GetHomeDir()
-	
-	if common.IsCommandAvailable("gobrew") {
-		cmd = exec.Command("gobrew", "install", version)
-	} else {
-		// Try different possible locations for g
-		gPaths := []string{
-			filepath.Join(homeDir, ".g", "bin", "g"),
-			filepath.Join(homeDir, "go", "bin", "g"),
-			"/usr/local/bin/g",
-		}
-		
-		var gPath string
-		for _, path := range gPaths {
-			if _, err := os.Stat(path); err == nil {
-				gPath = path
-				break
-			}
-		}
-		
-		if gPath == "" {
-			done <- true
-			bar.Finish()
-			red.Println("❌ No version manager available")
-			return
-		}
-		
-		cmd = exec.Command(gPath, "install", version)
-	}
+	cmd := exec.Command("gobrew", "install", version)
 
 	if err := cmd.Run(); err != nil {
 		done <- true

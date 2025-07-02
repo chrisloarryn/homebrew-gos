@@ -14,25 +14,33 @@ func GetSystemGoInfo() (version string, goroot string, found bool) {
 	// Check if Go is installed directly
 	if output, err := exec.Command("go", "version").Output(); err == nil {
 		version = strings.TrimSpace(string(output))
-		
+
 		// Try to get GOROOT to see where it's installed
 		if gorootOutput, err := exec.Command("go", "env", "GOROOT").Output(); err == nil {
 			goroot = strings.TrimSpace(string(gorootOutput))
 		}
-		
+
 		return version, goroot, true
 	}
-	
+
 	return "", "", false
 }
 
 // SetupGoEnvironment sets up the Go environment variables and PATH
 func SetupGoEnvironment() {
 	green := color.New(color.FgGreen)
-	
+
 	homeDir := GetHomeDir()
-	expectedGoroot := filepath.Join(homeDir, ".g", "go")
-	expectedGopath := filepath.Join(homeDir, "go")
+	var expectedGoroot, expectedGopath string
+
+	// Prefer gobrew, fallback to .g
+	if IsCommandAvailable("gobrew") {
+		expectedGoroot = filepath.Join(homeDir, ".gobrew", "current")
+		expectedGopath = filepath.Join(homeDir, "go")
+	} else {
+		expectedGoroot = filepath.Join(homeDir, ".g", "go")
+		expectedGopath = filepath.Join(homeDir, "go")
+	}
 
 	// Set environment variables for current session
 	os.Setenv("GOPATH", expectedGopath)
@@ -62,7 +70,7 @@ func VerifyGoInstallation() bool {
 		version := strings.TrimSpace(string(output))
 		green.Printf("✅ %s\n", version)
 	}
-	
+
 	return true
 }
 
@@ -70,7 +78,7 @@ func VerifyGoInstallation() bool {
 func VerifyGoEnvironmentPaths() {
 	green := color.New(color.FgGreen)
 	yellow := color.New(color.FgYellow)
-	
+
 	homeDir := GetHomeDir()
 	expectedGoroot := filepath.Join(homeDir, ".g", "go")
 	expectedGopath := filepath.Join(homeDir, "go")
@@ -124,24 +132,4 @@ func DisplayCurrentGoVersion() {
 		gopathCmd.Stdout = os.Stdout
 		gopathCmd.Run()
 	}
-}
-
-// GetGoVersion returns the current Go version as a string
-func GetGoVersion() string {
-	cmd := exec.Command("go", "version")
-	output, err := cmd.Output()
-	if err != nil {
-		return "Go not available"
-	}
-	return strings.TrimSpace(string(output))
-}
-
-// GetGoEnvVar returns a specific Go environment variable
-func GetGoEnvVar(envVar string) string {
-	cmd := exec.Command("go", "env", envVar)
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(string(output))
 }

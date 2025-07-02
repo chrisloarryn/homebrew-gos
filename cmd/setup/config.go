@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-// configureEnvironment sets up the environment variables for g  
+// configureEnvironment sets up the environment variables for gobrew
 func configureEnvironment() {
 	homeDir := common.GetHomeDir()
 
@@ -21,37 +21,36 @@ func configureEnvironment() {
 	yellow.Printf("  📝 Configuration added\n")
 }
 
-// generateGConfig generates the configuration script for g
+// generateGobrewConfig generates the configuration script for gobrew
 func generateGConfig(homeDir, osName string) string {
-	gPath := filepath.Join(homeDir, ".g")
-	gBinPath := filepath.Join(gPath, "bin")
+	gobrewPath := filepath.Join(homeDir, ".gobrew")
+	gobrewBinPath := filepath.Join(gobrewPath, "bin")
+	gobrewCurrentBinPath := filepath.Join(gobrewPath, "current", "bin")
 
 	config := fmt.Sprintf(`
-# g (Go version manager) configuration
-export G_HOME="%s"
-export PATH="%s:$PATH"
+# gobrew (Go version manager) configuration
+export PATH="%s:%s:$PATH"
 
 # Go environment
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
-`, gPath, gBinPath)
+`, gobrewCurrentBinPath, gobrewBinPath)
 
 	if osName == "Windows" {
 		config = fmt.Sprintf(`
-# g (Go version manager) configuration for Windows
-set G_HOME=%s
-set PATH=%s;%%PATH%%
+# gobrew (Go version manager) configuration for Windows
+set PATH=%s;%s;%%PATH%%
 
 # Go environment
 set GOPATH=%%USERPROFILE%%\go
 set PATH=%%GOPATH%%\bin;%%PATH%%
-`, gPath, gBinPath)
+`, gobrewCurrentBinPath, gobrewBinPath)
 	}
 
 	return config
 }
 
-// setEnvironmentVariables adds g configuration to shell files
+// setEnvironmentVariables adds gobrew configuration to shell files
 func setEnvironmentVariables(homeDir string) {
 	config := generateGConfig(homeDir, runtime.GOOS)
 
@@ -65,7 +64,7 @@ func setEnvironmentVariables(homeDir string) {
 		}
 
 		for _, file := range shellFiles {
-			if !common.HasConfigContent(file, "G_HOME") {
+			if !common.HasConfigContent(file, "gobrew") {
 				common.AppendToFile(file, config)
 			}
 		}
@@ -73,7 +72,7 @@ func setEnvironmentVariables(homeDir string) {
 	case "windows":
 		// Windows - add to PowerShell profile
 		profilePath := filepath.Join(homeDir, common.PowerShellProfile)
-		if !common.HasConfigContent(profilePath, "G_HOME") {
+		if !common.HasConfigContent(profilePath, "gobrew") {
 			// Create directory if it doesn't exist
 			os.MkdirAll(filepath.Dir(profilePath), 0755)
 			common.AppendToFile(profilePath, config)
@@ -84,7 +83,7 @@ func setEnvironmentVariables(homeDir string) {
 // createHelpScript creates a helper script with common commands
 func createHelpScript() {
 	homeDir := common.GetHomeDir()
-	scriptPath := filepath.Join(homeDir, ".g", "go-help.sh")
+	scriptPath := filepath.Join(homeDir, ".gobrew", "gobrew-help.sh")
 
 	helpContent := `#!/bin/bash
 # Go Version Manager Helper Script
@@ -92,21 +91,21 @@ func createHelpScript() {
 echo "🚀 Go Version Manager Commands:"
 echo ""
 echo "📦 Installation:"
-echo "   g install latest        # Install latest Go version"
-echo "   g install 1.21.5        # Install specific version"
+echo "   gobrew install latest   # Install latest Go version"
+echo "   gobrew install 1.21.5   # Install specific version"
 echo ""
 echo "🔄 Version Management:"
-echo "   g use latest            # Switch to latest version"
-echo "   g use 1.21.5            # Switch to specific version"
-echo "   g list                  # List installed versions"
-echo "   g list-all              # List all available versions"
+echo "   gobrew use latest       # Switch to latest version"
+echo "   gobrew use 1.21.5       # Switch to specific version"
+echo "   gobrew ls               # List installed versions"
+echo "   gobrew ls-remote        # List all available versions"
 echo ""
 echo "🗑️  Cleanup:"
-echo "   g remove 1.21.5         # Remove specific version"
-echo "   g clean                 # Clean cache"
+echo "   gobrew uninstall 1.21.5 # Remove specific version"
+echo "   gobrew clean            # Clean cache"
 echo ""
 echo "📋 Information:"
-echo "   g version               # Show g version"
+echo "   gobrew --version        # Show gobrew version"
 echo "   go version              # Show current Go version"
 echo "   which go                # Show Go path"
 echo ""
@@ -117,8 +116,10 @@ echo "   gos env                 # Environment info"
 echo ""
 `
 
+	// Create directory if it doesn't exist
+	os.MkdirAll(filepath.Join(homeDir, ".gobrew"), 0755)
 	common.WriteToFile(scriptPath, helpContent)
-	
+
 	// Make executable on Unix-like systems
 	if runtime.GOOS != "windows" {
 		os.Chmod(scriptPath, 0755)
@@ -132,21 +133,21 @@ func verifyInstallation() {
 	red := color.New(color.FgRed)
 
 	homeDir := common.GetHomeDir()
-	gBin := filepath.Join(homeDir, ".g", "bin", "g")
+	gobrewBin := filepath.Join(homeDir, ".gobrew", "bin", "gobrew")
 
-	// Check if g binary exists
-	if _, err := os.Stat(gBin); err == nil {
-		green.Println("  ✅ 'g' binary found")
+	// Check if gobrew binary exists
+	if _, err := os.Stat(gobrewBin); err == nil {
+		green.Println("  ✅ 'gobrew' binary found")
 	} else {
-		red.Println("  ❌ 'g' binary not found")
+		red.Println("  ❌ 'gobrew' binary not found")
 		return
 	}
 
-	// Check if g is working
-	if common.IsCommandAvailable("g") {
-		green.Println("  ✅ 'g' is available in PATH")
+	// Check if gobrew is working
+	if common.IsCommandAvailable("gobrew") {
+		green.Println("  ✅ 'gobrew' is available in PATH")
 	} else {
-		yellow.Println("  ⚠️  'g' not found in PATH (restart shell required)")
+		yellow.Println("  ⚠️  'gobrew' not found in PATH (restart shell required)")
 	}
 
 	// Check if Go is installed

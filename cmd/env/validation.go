@@ -5,11 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/cristobalcontreras/gos/cmd/common"
+	"github.com/fatih/color"
 )
 
 // ValidateEnvironment runs comprehensive environment validation
@@ -51,12 +50,12 @@ type ValidationConfig struct {
 func getValidationConfig() *ValidationConfig {
 	homeDir := common.GetHomeDir()
 	envConfig := getEnvironmentConfig()
-	
+
 	return &ValidationConfig{
 		EnvironmentConfig: envConfig,
-		HomeDir:          homeDir,
-		CurrentShell:     common.DetectCurrentShell(),
-		ShellFile:        common.GetShellFileForCurrentShell(common.DetectCurrentShell(), homeDir),
+		HomeDir:           homeDir,
+		CurrentShell:      common.DetectCurrentShell(),
+		ShellFile:         common.GetShellFileForCurrentShell(common.DetectCurrentShell(), homeDir),
 	}
 }
 
@@ -102,7 +101,7 @@ func validatePathConfiguration(config *ValidationConfig, result *ValidationResul
 
 	fmt.Println("")
 	blue.Println("🛤️  PATH Validation:")
-	
+
 	path := os.Getenv("PATH")
 	pathMissing := 0
 
@@ -156,13 +155,9 @@ func getRequiredDirectoriesForValidation(config *ValidationConfig) map[string]st
 	}
 
 	// Add version manager directories if detected
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
+	if common.IsCommandAvailable("gobrew") {
 		dirs["gobrew directory"] = filepath.Join(config.HomeDir, ".gobrew")
 		dirs["gobrew bin"] = filepath.Join(config.HomeDir, ".gobrew", "bin")
-		dirs["Go installation"] = config.ExpectedGoroot
-	} else if common.IsGInstalled() {
-		dirs["g directory"] = filepath.Join(config.HomeDir, ".g")
-		dirs["g bin directory"] = filepath.Join(config.HomeDir, ".g", "bin")
 		dirs["Go installation"] = config.ExpectedGoroot
 	}
 
@@ -209,13 +204,11 @@ func validateVersionManager(result *ValidationResult) bool {
 	fmt.Println("")
 	blue.Println("🔧 Version Manager:")
 
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
+	if common.IsCommandAvailable("gobrew") {
 		return validateGobrewManager(result)
-	} else if common.IsGInstalled() {
-		return validateGManager(result)
 	}
 
-	yellow.Println("  ⚠️  No version manager found (gobrew or g)")
+	yellow.Println("  ⚠️  No version manager found (gobrew)")
 	fmt.Println("    💡 Run 'gos setup' to install a version manager")
 	result.HasWarnings = true
 	return false
@@ -227,31 +220,14 @@ func validateGobrewManager(result *ValidationResult) bool {
 	yellow := color.New(color.FgYellow)
 
 	green.Println("  ✅ 'gobrew' version manager is available")
-	
+
 	if versions := common.GetGobrewVersions(); len(versions) > 0 {
 		green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
 	} else {
 		yellow.Println("  ⚠️  No Go versions installed with gobrew")
 		result.HasWarnings = true
 	}
-	
-	return true
-}
 
-// validateGManager validates g version manager
-func validateGManager(result *ValidationResult) bool {
-	green := color.New(color.FgGreen)
-	yellow := color.New(color.FgYellow)
-
-	green.Println("  ✅ 'g' version manager is available")
-	
-	if versions := common.GetInstalledVersions(); len(versions) > 0 {
-		green.Printf("  ✅ %d Go version(s) installed\n", len(versions))
-	} else {
-		yellow.Println("  ⚠️  No Go versions installed with g")
-		result.HasWarnings = true
-	}
-	
 	return true
 }
 

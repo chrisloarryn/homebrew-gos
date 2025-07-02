@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 
 	"github.com/cristobalcontreras/gos/cmd/common"
 	"github.com/fatih/color"
@@ -19,37 +18,16 @@ func SetDefaultVersion(version string) {
 
 	blue.Printf("📌 Setting Go %s as default version...\n", version)
 
-	var cmd *exec.Cmd
-	homeDir := common.GetHomeDir()
-	
-	if runtime.GOOS == "windows" && common.IsCommandAvailable("gobrew") {
-		cmd = exec.Command("gobrew", "use", version)
-	} else if common.IsCommandAvailable("gobrew") {
-		cmd = exec.Command("gobrew", "use", version)
-	} else {
-		// Try different possible locations for g
-		gPaths := []string{
-			filepath.Join(homeDir, ".g", "bin", "g"),
-			filepath.Join(homeDir, "go", "bin", "g"),
-			"/usr/local/bin/g",
-		}
-		
-		var gPath string
-		for _, path := range gPaths {
-			if _, err := os.Stat(path); err == nil {
-				gPath = path
-				break
-			}
-		}
-		
-		if gPath == "" {
-			red.Println("❌ No version manager available")
-			return
-		}
-		
-		cmd = exec.Command(gPath, "set", version)
+	// Use gobrew to set the default version
+	if _, err := exec.LookPath("gobrew"); err != nil {
+		red.Println("❌ gobrew is not installed")
+		red.Println("💡 Run first: gos setup")
+		return
 	}
 
+	cmd := exec.Command("gobrew", "use", version)
+
+	homeDir := common.GetHomeDir()
 	if err := cmd.Run(); err != nil {
 		red.Printf("❌ Error setting default version: %v\n", err)
 		return
@@ -62,7 +40,7 @@ func SetDefaultVersion(version string) {
 	}
 
 	green.Printf("✅ Go %s is now the default version\n", version)
-	
+
 	// Verify the change
 	fmt.Println()
 	blue.Println("🔍 Verifying...")

@@ -32,17 +32,17 @@ var rootCmd = &cobra.Command{
 	Short: "A comprehensive Go version manager CLI",
 	Long: `GOS is a powerful command-line tool for managing Go versions.
 It provides functionality to install, switch, and manage multiple Go versions
-using the 'g' version manager, along with comprehensive cleanup capabilities.
+using gobrew, along with comprehensive cleanup capabilities.
 
 Features:
 - Install and switch between Go versions
-- Setup the 'g' version manager
+- Setup gobrew version manager
 - Deep clean Go installations
 - Project-specific version management
 - System status and diagnostics`,
 	Example: `  gos install 1.21.5     # Install Go 1.21.5
   gos use 1.21.5          # Switch to Go 1.21.5
-  gos setup               # Setup the 'g' version manager
+  gos setup               # Setup gobrew version manager
   gos clean               # Deep clean Go installations
   gos status              # Show system status`,
 	Version: getVersionString(),

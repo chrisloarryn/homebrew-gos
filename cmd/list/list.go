@@ -11,7 +11,7 @@ func NewListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List installed Go versions",
-		Long:  `List all Go versions that have been installed via any available version manager (gobrew, g) or manual installation.`,
+		Long:  `List all Go versions that have been installed via gobrew.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			remote, _ := cmd.Flags().GetBool("remote")
 			if remote {
@@ -21,18 +21,18 @@ func NewListCmd() *cobra.Command {
 			}
 		},
 	}
-	
+
 	cmd.Flags().BoolP("remote", "r", false, "List available remote versions")
 	return cmd
 }
 
-// checkVersionManagerAvailable verifies if a version manager is available
+// checkVersionManagerAvailable verifies if gobrew is available
 func checkVersionManagerAvailable() bool {
-	if common.IsCommandAvailable("gobrew") || common.IsCommandAvailable("g") {
+	if common.IsCommandAvailable("gobrew") {
 		return true
 	}
 
-	color.Red("❌ Error: No version manager is installed.")
+	color.Red("❌ Error: gobrew is not installed.")
 	color.Yellow("💡 Run first: gos setup")
 	return false
 }

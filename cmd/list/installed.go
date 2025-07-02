@@ -16,22 +16,17 @@ func ListVersions() {
 
 	blue.Println("📋 Installed Go versions:")
 
-	// Try different version managers based on availability
-	if common.IsCommandAvailable("gobrew") {
+	// Use gobrew to list versions
+	if _, err := exec.LookPath("gobrew"); err == nil {
 		listVersionsWithGobrew()
-	} else if common.IsCommandAvailable("g") {
-		listVersionsWithG()
 	} else {
-		// Fallback: check for direct installations or show manual detection
-		if !listVersionsManually() {
-			yellow.Println("No version manager detected.")
-			fmt.Println("")
-			yellow.Println("💡 To install a version manager:")
-			fmt.Println("   gos setup               # Install version manager")
-			fmt.Println("")
-			yellow.Println("💡 If Go is installed manually, check with:")
-			fmt.Println("   go version              # Show current Go version")
-		}
+		yellow.Println("gobrew not detected.")
+		fmt.Println("")
+		yellow.Println("💡 To install gobrew:")
+		fmt.Println("   gos setup               # Install gobrew")
+		fmt.Println("")
+		yellow.Println("💡 If Go is installed manually, check with:")
+		fmt.Println("   go version              # Show current Go version")
 	}
 }
 
@@ -54,42 +49,6 @@ func listVersionsWithGobrew() {
 		line = strings.TrimSpace(line)
 		if line != "" {
 			if strings.Contains(line, "*") || strings.Contains(line, "current") {
-				green.Printf("  ✅ %s (current)\n", strings.ReplaceAll(line, "*", ""))
-			} else {
-				fmt.Printf("     %s\n", line)
-			}
-		}
-	}
-}
-
-// listVersionsWithG lists versions using g
-func listVersionsWithG() {
-	yellow := color.New(color.FgYellow)
-	green := color.New(color.FgGreen)
-	
-	// Try to get the list of installed versions
-	cmd := exec.Command("g", "list")
-	output, err := cmd.Output()
-	if err != nil {
-		yellow.Println("  No versions installed via g")
-		return
-	}
-
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	if len(lines) == 0 {
-		yellow.Println("  No versions installed via g")
-		return
-	}
-
-	fmt.Println("  Using g...")
-	
-	// Get current version using common helper
-	currentVersion := common.GetCurrentGoVersion()
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line != "" && !strings.HasPrefix(line, "No") {
-			if line == currentVersion || strings.Contains(line, "*") {
 				green.Printf("  ✅ %s (current)\n", strings.ReplaceAll(line, "*", ""))
 			} else {
 				fmt.Printf("     %s\n", line)

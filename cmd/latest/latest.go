@@ -51,7 +51,7 @@ func installLatest() {
 // executeInstallLatest performs the installation with progress bar
 func executeInstallLatest() bool {
 	red := color.New(color.FgRed)
-	
+
 	// Create progress bar for installation
 	bar := progressbar.NewOptions(-1,
 		progressbar.OptionSetDescription("Installing latest Go"),
@@ -62,7 +62,7 @@ func executeInstallLatest() bool {
 			Saucer: "=", SaucerHead: ">", SaucerPadding: " ", BarStart: "[", BarEnd: "]",
 		}),
 	)
-	
+
 	// Start progress bar in goroutine
 	done := make(chan bool)
 	go func() {
@@ -102,33 +102,14 @@ func getInstallCommand() *exec.Cmd {
 	if common.IsCommandAvailable("gobrew") {
 		return exec.Command("gobrew", "install", "latest")
 	}
-	
-	gPath := findGPath()
-	if gPath != "" {
-		return exec.Command(gPath, "install", "latest")
-	}
-	
-	return nil
-}
 
-// findGPath finds the g version manager path
-func findGPath() string {
-	return common.FindGPath()
+	return nil
 }
 
 // switchToLatest switches to the latest installed version
 func switchToLatest() {
-	var useCmd *exec.Cmd
 	if common.IsCommandAvailable("gobrew") {
-		useCmd = exec.Command("gobrew", "use", "latest")
-	} else {
-		gPath := findGPath()
-		if gPath != "" {
-			useCmd = exec.Command(gPath, "set", "latest")
-		}
-	}
-
-	if useCmd != nil {
+		useCmd := exec.Command("gobrew", "use", "latest")
 		useCmd.Run()
 	}
 }
